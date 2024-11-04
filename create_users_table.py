@@ -10,7 +10,7 @@ load_dotenv()
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 # Path to your SQL file
-sql_file_path = 'create_users_table.sql'
+sql_file_path = 'sql/create_users_table.sql'
 
 async def run_sql_file(sql_file):
     # Connect to the database asynchronously
