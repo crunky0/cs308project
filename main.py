@@ -1,6 +1,7 @@
 import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from typing import List
 from databases import Database
 from passlib.context import CryptContext
 from dotenv import load_dotenv
@@ -11,21 +12,24 @@ load_dotenv()
 # Database connection
 DATABASE_URL = os.getenv("DATABASE_URL")
 database = Database(DATABASE_URL)
-
-# Password hashing configuration
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 # FastAPI app initialization
 app = FastAPI()
 
 # Pydantic models for request bodies
-class UserCreate(BaseModel):
-    username: str
-    password: str
+class Category(BaseModel):
+    id: int
+    name: str
 
-class UserLogin(BaseModel):
-    username: str
-    password: str
+class Product(BaseModel):
+    id: int
+    serial_num: str
+    name: str
+    model: str
+    description: str
+    distributer: str
+    warranty: str
+    price: float
+    stock: int
 
 # Load SQL from file function
 def load_sql_file(filename: str) -> str:
@@ -45,37 +49,19 @@ async def shutdown():
     if database.is_connected:
         await database.disconnect()
 
-# API Endpoint to create a new user
-@app.post("/users/register/")
-async def create_user(user: UserCreate):
-    # Load the SQL query from the file
-    sql_query = load_sql_file('sql/create_user.sql')
+# API Endpoint to search products by category
+@app.get("/search/by_category/{category_name}")
+async def get_products_by_category(category_name: str):
 
-    # Check if the username already exists
-    find_user_query = load_sql_file('sql/find_user_by_username.sql')
-    existing_user = await database.fetch_one(query=find_user_query, values={"username": user.username})
+
+    # Check if the category exists
+    find_product_by_category_query = load_sql_file('sql/find_product_by_category.sql')
+    is_category_exist = await database.fetch_one(query=find_product_by_category_query, values={"category_name": category_name})
     
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Username already exists")
+    if not is_category_exist:
+        raise HTTPException(status_code=400, detail="Category cannot be found.")
 
-    # Hash the password and execute the SQL file to insert the new user
-    hashed_password = hash_password(user.password)
-    values = {"username": user.username, "password": hashed_password, "role": "Customer"}
-    await database.execute(query=sql_query, values=values)
+    # Return the products within the given category
+    products = await database.fetch_all(query=find_product_by_category_query, values={"category_name": category_name})
     
-    return {"message": "User created successfully"}
-
-# API Endpoint to login
-@app.post("/users/login/")
-async def login(user: UserLogin):
-    # Load the SQL query from the file
-    sql_query = load_sql_file('sql/find_user_by_username.sql')
-
-    # Fetch the user by username
-    db_user = await database.fetch_one(query=sql_query, values={"username": user.username})
-
-    # Check if user exists and password matches
-    if not db_user or not verify_password(user.password, db_user["password"]):
-        raise HTTPException(status_code=401, detail="Invalid username or password")
-
-    return {"message": "Login successful", "user": db_user["username"]}
+    return [Product(**dict(product)) for product in products]
