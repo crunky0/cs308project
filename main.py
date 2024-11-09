@@ -2,9 +2,10 @@ import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
-from databases import Database
-from passlib.context import CryptContext
 from dotenv import load_dotenv
+from databases import Database
+
+
 
 # Load environment variables
 load_dotenv()
