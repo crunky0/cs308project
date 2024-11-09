@@ -1,5 +1,5 @@
 SELECT * FROM products 
-WHERE category_id = (
-    SELECT category_id FROM categories
+WHERE categoryID = (
+    SELECT categoryID FROM categories
     WHERE name = :category_name
 );

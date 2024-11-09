@@ -10,7 +10,7 @@ load_dotenv()
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 # Path to your SQL file
-sql_file_path = 'sql/create_categories_table.sql'
+
 
 async def run_sql_file(sql_file):
     # Connect to the database asynchronously
@@ -33,4 +33,5 @@ async def run_sql_file(sql_file):
         await connection.close()
 
 if __name__ == "__main__":
+    sql_file_path = 'sql/create_products_table.sql'
     asyncio.run(run_sql_file(sql_file_path))
