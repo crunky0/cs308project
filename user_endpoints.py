@@ -14,6 +14,9 @@ router = APIRouter()
 class UserCreate(BaseModel):
     username: str
     password: str
+    name: str
+    surname: str
+    email: str
 
 class UserLogin(BaseModel):
     username: str
@@ -31,25 +34,33 @@ def hash_password(password: str) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
-# API Endpoint to create a new user
+#API endpoint to create a user
 @router.post("/users/register/")
 async def create_user(user: UserCreate):
     # Load the SQL query from the file
     sql_query = load_sql_file('sql/create_user.sql')
 
-    # Check if the username already exists
-    find_user_query = load_sql_file('sql/find_user_by_username.sql')
-    existing_user = await database.fetch_one(query=find_user_query, values={"username": user.username})
+    # Check if the username or email already exists
+    find_user_query = "SELECT * FROM users WHERE username = :username OR email = :email"
+    existing_user = await database.fetch_one(query=find_user_query, values={"username": user.username, "email": user.email})
     
     if existing_user:
-        raise HTTPException(status_code=400, detail="Username already exists")
+        raise HTTPException(status_code=400, detail="Username or email already exists")
 
-    # Hash the password and execute the SQL file to insert the new user
+    # Hash the password and insert the new user
     hashed_password = hash_password(user.password)
-    values = {"username": user.username, "password": hashed_password, "role": "Customer"}
+    values = {
+        "username": user.username,
+        "password": hashed_password,
+        "role": "Customer",
+        "name": user.name,
+        "surname": user.surname,
+        "email": user.email
+    }
     await database.execute(query=sql_query, values=values)
     
     return {"message": "User created successfully"}
+
 
 # API Endpoint to login
 @router.post("/users/login/")
