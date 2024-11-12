@@ -52,3 +52,15 @@ async def get_reviews_for_product(product_id: int):
     
     reviews = await database.fetch_all(query=get_reviews_query, values={"productID": product_id})
     return [ReviewResponse(**review) for review in reviews]
+
+@router.put("/reviews/{review_id}/approve/", response_model=ReviewResponse)
+async def approve_review(review_id: int):
+    # Load the SQL query from the file
+    approve_review_query = load_sql_file("approve_rating.sql")
+
+    # Execute the query to approve the rating
+    review_record = await database.fetch_one(query=approve_review_query, values={"reviewID": review_id})
+    if not review_record:
+        raise HTTPException(status_code=404, detail="Review not found or already approved")
+    
+    return ReviewResponse(**review_record)
