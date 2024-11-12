@@ -25,17 +25,17 @@ def load_sql_file(filename: str) -> str:
 
 
 #API endpoint to get information about the selected products' stock.
-@router.get("/products/{product_id}")
+@router.get("/products/{productID}")
 async def get_stock(productID: int):
-    sql_query = load_sql_file('sql/select_product.sql')
+    sql_query = load_sql_file('sql/find_product.sql')
     product = await database.fetch_one(query=sql_query, values={"productID": productID})
     if product:
         product = Product(**dict(product))
         product = product.dict()
-        if product.stock == 0:
+        if product["stock"] == 0:
             message = "Out of Stock."
         else:
-            message = f"{product.stock} items available."
+            message = f"{product["stock"]} items available."
         return message
     else:
         raise HTTPException(status_code=400, detail="Selected product cannot be found.")
