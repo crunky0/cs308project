@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from db import database
-from user_endpoints import router as user_router  # Import the router
+from stock_endpoints import router as user_router  # Import the router
 
 # FastAPI app initialization with lifespan context
 @asynccontextmanager
