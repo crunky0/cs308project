@@ -2,9 +2,12 @@ import os
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from db import database
+
+from stock_endpoints import router as stock_router  # Import the router
 from user_endpoints import router as user_router  # Import the router
 from rating_endpoints import router as rating_router
 from categorysearch_endpoints import router as category_search_router
+
 
 # FastAPI app initialization with lifespan context
 @asynccontextmanager
@@ -21,7 +24,7 @@ app = FastAPI(lifespan=lifespan)
 
 # Include the user router
 
+app.include_router(stock_router)
 app.include_router(user_router)
 app.include_router(rating_router)
 app.include_router(category_search_router)
-
