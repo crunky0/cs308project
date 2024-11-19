@@ -1,0 +1,40 @@
+from db import database
+import asyncio
+
+async def update_orders_table():
+    # Backup the existing orders table data
+    backup_query = """
+    CREATE TABLE IF NOT EXISTS orders_backup AS TABLE orders WITH NO DATA;
+    INSERT INTO orders_backup SELECT * FROM orders;
+    """
+
+    # Alter table to add new columns (only if they don't exist)
+    alter_table_query = """
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS orderID SERIAL PRIMARY KEY,
+    ADD COLUMN IF NOT EXISTS userID INT,
+    ADD COLUMN IF NOT EXISTS productID INT,
+    ADD COLUMN IF NOT EXISTS orderStatus VARCHAR(50);
+    """
+
+    # Add foreign key constraints
+    add_foreign_keys_query = """
+    ALTER TABLE orders
+    ADD CONSTRAINT fk_user FOREIGN KEY (userID) REFERENCES users(user_id) ON DELETE CASCADE,
+    ADD CONSTRAINT fk_product FOREIGN KEY (productID) REFERENCES products(product_id) ON DELETE CASCADE;
+    """
+
+    await database.connect()
+    try:
+        # Perform schema updates
+        await database.execute(backup_query)
+        await database.execute(alter_table_query)
+        await database.execute(add_foreign_keys_query)
+    except Exception as e:
+        raise RuntimeError(f"An error occurred: {e}")
+    finally:
+        await database.disconnect()
+
+# Run the migration
+if __name__ == "__main__":
+    asyncio.run(update_orders_table())
