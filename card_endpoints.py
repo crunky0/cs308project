@@ -1,10 +1,11 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, APIRouter
 from databases import Database
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 
+router = APIRouter()
 # Load environment variables
 load_dotenv()
 
@@ -30,7 +31,7 @@ class AddToCard(BaseModel):
     product_id: int
     quantity: int
 
-@app.post("/card/add")
+@router.post("/card/add")
 async def add_to_card(item: AddToCard):
     # Step 1: Check if the product exists and has sufficient stock
     find_product_query = "SELECT * FROM products WHERE productid = :product_id"
