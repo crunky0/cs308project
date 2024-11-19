@@ -3,13 +3,17 @@ import pdfkit
 from datetime import datetime
 import logging
 from typing import List, Dict, Any
+import platform
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-# Path to wkhtmltopdf executable
-path_wkhtmltopdf = r"D:\wkhtmltopdf\bin\wkhtmltopdf.exe"
+if platform.system() == "Windows":
+    path_wkhtmltopdf = 'D:\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'
+else:
+    path_wkhtmltopdf = '/usr/local/bin/wkhtmltopdf'  # Path for macOS/Linux
+
 pdfkit_config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
 
 class InvoiceService:
