@@ -1,10 +1,10 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException,APIRouter
 from pydantic import BaseModel,  Extra
 from services.invoice_service import InvoiceService
 from typing import List
 
-app = FastAPI()
 
+router = APIRouter()
 # Pydantic model for the request body
 
 class UserInfo(BaseModel):
@@ -29,7 +29,7 @@ class InvoiceRequest(BaseModel):
 # Initialize the InvoiceService
 invoice_service = InvoiceService()
 
-@app.post("/generate-invoice")
+@router.post("/generate_invoice")
 async def generate_invoice(request: InvoiceRequest):
     try:
         # Convert Pydantic models to dictionaries
