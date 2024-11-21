@@ -17,6 +17,8 @@ class UserCreate(BaseModel):
     name: str
     surname: str
     email: str
+    taxID: str
+    homeAddress: str
 
 class UserLogin(BaseModel):
     username: str
@@ -55,7 +57,9 @@ async def create_user(user: UserCreate):
         "role": "Customer",
         "name": user.name,
         "surname": user.surname,
-        "email": user.email
+        "email": user.email,
+        "taxid": user.taxID,
+        "homeaddress": user.homeAddress
     }
     await database.execute(query=sql_query, values=values)
     

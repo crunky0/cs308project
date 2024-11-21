@@ -5,5 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     role VARCHAR(50) DEFAULT 'Customer',
     name VARCHAR(100),
     surname VARCHAR(100),
-    email VARCHAR(100) UNIQUE
+    email VARCHAR(100) UNIQUE,
+    taxID VARCHAR(50),
+    homeAddress VARCHAR(255)
 );
