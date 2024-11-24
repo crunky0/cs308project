@@ -65,26 +65,24 @@ async def get_products_by_description(description: str):
 
 # API Endpoint to search products by description.
 @router.get("/search")
-async def get_products_by_description(
+async def get_products_by_search(
     name: Optional[str] = Query(None),
     description: Optional[str] = Query(None),
     model: Optional[str] = Query(None),
-    category: Optional[int] = Query(None),
     ):
 
 
     # Check if the category exists
     find_products = load_sql_file('sql/find_products.sql')
-    all_products= await database.fetch_all(query=find_products_by_term_query, values={
+    all_products= await database.fetch_all(query=find_products, values={
         "name": f"%{name}%" if name else None,
         "description": f"%{description}%" if description else None,
-        "model": f"%{model}%" if model else None,
-        "category": category,}
+        "model": f"%{model}%" if model else None,}
     )
     
     if not all_products:
-        raise HTTPException(status_code=400, detail="No product can be found in the given description.")
+        raise HTTPException(status_code=400, detail="No product can be found in the given term.")
 
 
     
-    return [Product(**dict(product)) for product in all_products_by_description]
+    return [Product(**dict(product)) for product in all_products]
