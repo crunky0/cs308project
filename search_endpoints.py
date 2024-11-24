@@ -1,4 +1,5 @@
-from fastapi import HTTPException, APIRouter
+from fastapi import HTTPException, APIRouter, Query
+from typing import Optional, List
 from pydantic import BaseModel
 from db import database
 
@@ -62,3 +63,28 @@ async def get_products_by_description(description: str):
     
     return [Product(**dict(product)) for product in all_products_by_description]
 
+# API Endpoint to search products by description.
+@router.get("/search")
+async def get_products_by_description(
+    name: Optional[str] = Query(None),
+    description: Optional[str] = Query(None),
+    model: Optional[str] = Query(None),
+    category: Optional[int] = Query(None),
+    ):
+
+
+    # Check if the category exists
+    find_products = load_sql_file('sql/find_products.sql')
+    all_products= await database.fetch_all(query=find_products_by_term_query, values={
+        "name": f"%{name}%" if name else None,
+        "description": f"%{description}%" if description else None,
+        "model": f"%{model}%" if model else None,
+        "category": category,}
+    )
+    
+    if not all_products:
+        raise HTTPException(status_code=400, detail="No product can be found in the given description.")
+
+
+    
+    return [Product(**dict(product)) for product in all_products_by_description]
