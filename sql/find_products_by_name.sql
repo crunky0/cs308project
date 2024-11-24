@@ -1,2 +1,2 @@
 SELECT * FROM products 
-WHERE productname = :product_name;
+WHERE productname LIKE :product_name;

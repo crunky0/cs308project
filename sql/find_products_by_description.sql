@@ -1,2 +1,2 @@
 SELECT * FROM products 
-WHERE description = description;
+WHERE description LIKE :description;
