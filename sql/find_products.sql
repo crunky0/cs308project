@@ -1,4 +1,4 @@
 SELECT * FROM products
-WHERE (name IS NULL OR productname LIKE :name)
-  AND (description IS NULL OR description LIKE :description)
-  AND (model IS NULL OR productmodel LIKE :model);
+WHERE (:product_name = '' OR productname LIKE :product_name)
+  AND (:description = '' OR description LIKE :description)
+  AND (:product_model = '' OR productmodel LIKE :product_model);

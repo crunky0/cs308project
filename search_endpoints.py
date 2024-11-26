@@ -75,13 +75,15 @@ async def get_products_by_search(
     # Check if the category exists
     find_products = load_sql_file('sql/find_products.sql')
     all_products= await database.fetch_all(query=find_products, values={
-        "name": f"%{name}%" if name else None,
-        "description": f"%{description}%" if description else None,
-        "model": f"%{model}%" if model else None,}
+        "product_name": f"%{name}%" if name else "",
+        "description": f"%{description}%" if description else "",
+        "product_model": f"%{model}%" if model else "",
+    }
+
     )
     
     if not all_products:
-        raise HTTPException(status_code=400, detail="No product can be found in the given term.")
+        raise HTTPException(status_code=400, detail="No product can be found in the given search term.")
 
 
     
