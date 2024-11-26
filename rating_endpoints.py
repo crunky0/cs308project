@@ -64,3 +64,19 @@ async def approve_review(review_id: int):
         raise HTTPException(status_code=404, detail="Review not found or already approved")
     
     return ReviewResponse(**review_record)
+
+@router.get("/products/{product_id}/average-rating/", response_model=float)
+async def get_average_rating(product_id: int):
+    """
+    Get the average rating for a specific product.
+    """
+    # Load the SQL query from the file
+    average_rating_query = load_sql_file("average_rating.sql")
+    
+    # Execute the query to calculate the average rating
+    result = await database.fetch_one(query=average_rating_query, values={"productID": product_id})
+    
+    if not result or result["average_rating"] is None:
+        raise HTTPException(status_code=404, detail="No ratings found for this product")
+    
+    return result["average_rating"]
