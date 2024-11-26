@@ -1,12 +1,12 @@
 from db import database
 import asyncio
 
-async def update_users_table():
+async def update_products_table():
     
     # Alter table to add new columns
     alter_table_query = """
     ALTER TABLE products
-    ADD COLUMN IF NOT EXISTS soldAmount INT,
+    ADD COLUMN IF NOT EXISTS soldAmount INT
     """
 
     await database.connect()
@@ -15,4 +15,4 @@ async def update_users_table():
 
 # Run the migration
 if __name__ == "__main__":
-    asyncio.run(update_users_table())
+    asyncio.run(update_products_table())
