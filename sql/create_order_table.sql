@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS orders (
+    orderID SERIAL PRIMARY KEY,
+    userID INT REFERENCES users(userid),
+    totalAmount NUMERIC(10,2),
+    orderDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -9,6 +9,7 @@ from rating_endpoints import router as rating_router
 from categorysearch_endpoints import router as category_search_router
 from card_endpoints import router as card_router
 from invoice_endpoints import router as invoice_router
+from order_endpoints import router as order_router
 
 
 # FastAPI app initialization with lifespan context
@@ -32,3 +33,5 @@ app.include_router(rating_router)
 app.include_router(category_search_router)
 app.include_router(card_router)
 app.include_router(invoice_router)
+app.include_router(order_router)
+

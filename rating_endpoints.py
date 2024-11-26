@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import List
 from fastapi import APIRouter, HTTPException
 from db import database
 import os
@@ -45,7 +46,7 @@ async def create_review(review: ReviewCreate):
     return ReviewResponse(**review_record)
 
 # Endpoint to retrieve all reviews for a specific product
-@router.get("/products/{product_id}/reviews/", response_model=list[ReviewResponse])
+@router.get("/products/{product_id}/reviews/", response_model=List[ReviewResponse])
 async def get_reviews_for_product(product_id: int):
     # Load the SQL query from the file
     get_reviews_query = load_sql_file("get_reviews_for_product.sql")
