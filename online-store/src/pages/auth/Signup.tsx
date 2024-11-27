@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import './Login.css';
-
-const mockUsers: { email: string; password: string }[] = [];
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
@@ -10,9 +9,10 @@ const SignUp = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { signup } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
@@ -23,21 +23,14 @@ const SignUp = () => {
       return;
     }
 
-    // Check if the user already exists
-    const userExists = mockUsers.some((user) => user.email === email);
-    if (userExists) {
-      setError('User already exists');
+    try {
+      await signup(email, password);
+      navigate('/products');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setIsLoading(false);
-      return;
     }
-
-    // Simulate user registration
-    mockUsers.push({ email, password });
-    console.log('Registered users:', mockUsers); // To see the registered users
-    setTimeout(() => {
-      setIsLoading(false);
-      navigate('/login'); // Redirect to login after successful registration
-    }, 1000); // Simulate a network delay
   };
 
   return (
