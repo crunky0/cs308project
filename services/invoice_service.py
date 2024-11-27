@@ -3,6 +3,7 @@ import pdfkit
 from datetime import datetime
 import logging
 from typing import List, Dict, Any
+import platform
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -17,9 +18,13 @@ class InvoiceService:
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
         logger.info(f"Invoice output directory set to: {self.output_dir}")
+        if platform.system() == "Windows":
+            path_wkhtmltopdf = 'D:\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'
+        else:
+            path_wkhtmltopdf = '/usr/local/bin/wkhtmltopdf'  # Path for macOS/Linux
 
         # Configure wkhtmltopdf path
-        self.pdfkit_config = pdfkit.configuration(wkhtmltopdf=r"D:\wkhtmltopdf\bin\wkhtmltopdf.exe")
+        self.pdfkit_config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
 
     def generate_invoice(self, html_content: str, invoice_number: str) -> str:
         """
