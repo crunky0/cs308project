@@ -2,6 +2,7 @@ import os
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from db import database
+from fastapi.middleware.cors import CORSMiddleware
 
 from stock_endpoints import router as stock_router  # Import the router
 from user_endpoints import router as user_router  # Import the router
@@ -25,7 +26,13 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# Include the user router
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(stock_router)
 app.include_router(user_router)
