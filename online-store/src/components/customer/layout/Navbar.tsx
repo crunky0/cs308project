@@ -9,7 +9,7 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { cart } = useCart();
   const itemsCount = cart.reduce((total: number, item: CartItem) => total + item.quantity, 0);
@@ -25,6 +25,11 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
     setIsAccountDropdownOpen(!isAccountDropdownOpen);
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/product'); // Logout sonrası login sayfasına yönlendirme
+  };
+
   return (
     <nav className="navbar">
       <div className="nav-content">
@@ -34,8 +39,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
           </Link>
 
           <div className="nav-links">
-           
-         
+            {/* Eklenebilecek diğer navigasyon linkleri */}
           </div>
 
           <div className="search-bar">
@@ -58,24 +62,40 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
             Cart
             {itemsCount > 0 && <span className="cart-count">{itemsCount}</span>}
           </Link>
-          <div className="account-dropdown">
-            <button className="account-button" onClick={toggleAccountDropdown}>
-              <span className="material-icons">person</span>
-              Account
-            </button>
-            {isAccountDropdownOpen && (
-              <div className="dropdown-menu">
-                <Link to="/orders" className="dropdown-item">
-                  <span className="material-icons">receipt_long</span>
-                  My Orders
-                </Link>
-                <Link to="/settings" className="dropdown-item">
-                  <span className="material-icons">settings</span>
-                  Settings
-                </Link>
-              </div>
-            )}
-          </div>
+
+          {!user ? (
+            <div className="auth-buttons">
+              <button onClick={() => navigate('/login')} className="auth-button">
+                Login
+              </button>
+              <button onClick={() => navigate('/signup')} className="auth-button">
+                Sign Up
+              </button>
+            </div>
+          ) : (
+            <div className="account-dropdown">
+              <button className="account-button" onClick={toggleAccountDropdown}>
+                <span className="material-icons">person</span>
+                Account
+              </button>
+              {isAccountDropdownOpen && (
+                <div className="dropdown-menu">
+                  <Link to="/orders" className="dropdown-item">
+                    <span className="material-icons">receipt_long</span>
+                    My Orders
+                  </Link>
+                  <Link to="/settings" className="dropdown-item">
+                    <span className="material-icons">settings</span>
+                    Settings
+                  </Link>
+                  <button onClick={handleLogout} className="dropdown-item logout-button">
+                    <span className="material-icons">logout</span>
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </nav>

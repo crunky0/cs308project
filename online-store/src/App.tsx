@@ -9,6 +9,8 @@ import Cart from './pages/customers/Cart';
 import Checkout from './pages/customers/Checkout';
 import Refund from './pages/customers/Refund';
 import OrdersPage from './pages/customers/Orders';
+import Login from './pages/auth/Login';
+import SignUp from './pages/auth/Signup';
 
 // PM routes
 
@@ -28,6 +30,8 @@ function App() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/refund/:orderId" element={<Refund />} />
             <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
             {/* PM routes - add a prefix to distinguish them */}
 
 
