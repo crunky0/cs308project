@@ -12,6 +12,7 @@ from card_endpoints import router as card_router
 from invoice_endpoints import router as invoice_router
 from product_sort_endpoints import router as product_sort_router
 from mailing_endpoints import router as mailing_router
+from order_endpoints import router as order_router
 
 
 # FastAPI app initialization with lifespan context
@@ -43,3 +44,4 @@ app.include_router(card_router)
 app.include_router(invoice_router)
 app.include_router(product_sort_router)
 app.include_router(mailing_router)
+app.include_router(order_router)
