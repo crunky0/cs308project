@@ -1,20 +1,19 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel,  Extra
-from services.invoice_service import InvoiceService
+from pydantic import BaseModel
 from typing import List
+from services.invoice_service import InvoiceService
+from datetime import datetime
 
+# Initialize FastAPI app
 app = FastAPI()
 
-# Pydantic model for the request body
+# Initialize InvoiceService
+invoice_service = InvoiceService()
 
+# Pydantic models for request validation
 class UserInfo(BaseModel):
     name: str
     email: str
-
-
-    class Config:
-        extra = 'forbid'  # Forbid extra fields
-
 
 class Item(BaseModel):
     name: str
@@ -26,22 +25,24 @@ class InvoiceRequest(BaseModel):
     items: List[Item]
     total_amount: float
 
-# Initialize the InvoiceService
-invoice_service = InvoiceService()
-
 @app.post("/generate-invoice")
 async def generate_invoice(request: InvoiceRequest):
     try:
-        # Convert Pydantic models to dictionaries
-        user_info_dict = request.user_info.model_dump()  # Convert UserInfo to dict
-        items_list_dict = [item.model_dump() for item in request.items]  # Convert each Item to dict
+        # Generate unique invoice number and date
+        invoice_number = f"INV-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        invoice_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        # Call the InvoiceService to generate the invoice
-        file_path = invoice_service.generate_invoice(
-            user_info=user_info_dict,
-            items=items_list_dict,
+        # Create HTML content for the invoice
+        html_content = invoice_service._create_invoice_html(
+            invoice_number=invoice_number,
+            invoice_date=invoice_date,
+            user_info=request.user_info.dict(),
+            items=[item.dict() for item in request.items],
             total_amount=request.total_amount
         )
+
+        # Generate the PDF invoice
+        file_path = invoice_service.generate_invoice(html_content, invoice_number)
         return {"message": "Invoice generated successfully", "file_path": file_path}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
