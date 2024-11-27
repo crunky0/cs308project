@@ -1,0 +1,155 @@
+.refund-page {
+    padding-top: 80px;
+    min-height: 100vh;
+    background-color: #f5f5f5;
+  }
+  
+  .refund-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  .refund-container h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #333;
+  }
+  
+  .refund-form-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+  }
+  
+  .refund-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  .form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+  
+  .submit-btn {
+    width: 100%;
+    padding: 1rem;
+    background: #1a1a1a;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+  }
+  
+  .submit-btn:hover {
+    background: #333;
+  }
+  
+  .submit-btn.loading {
+    background: #666;
+    cursor: not-allowed;
+  }
+  
+  .refund-info {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    height: fit-content;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .refund-info h3 {
+    margin-bottom: 1rem;
+    color: #333;
+  }
+  
+  .refund-info ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .refund-info li {
+    margin-bottom: 0.75rem;
+    color: #666;
+    padding-left: 1.5rem;
+    position: relative;
+  }
+  
+  .refund-info li:before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #1a1a1a;
+  }
+  
+  .confirmation-message {
+    text-align: center;
+    padding: 2rem;
+    background-color: #dff0d8;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .confirmation-message .success-icon {
+    font-size: 2rem;
+    color: #5cb85c;
+    margin-bottom: 1rem;
+  }
+  
+  .confirmation-message h2 {
+    margin-bottom: 0.5rem;
+    color: #333;
+  }
+  
+  .confirmation-message p {
+    margin-bottom: 1rem;
+    color: #666;
+  }
+  
+  .request-details {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .request-details h3 {
+    margin-bottom: 1rem;
+    color: #333;
+  }
+  
+  .request-details p {
+    margin-bottom: 0.75rem;
+    color: #666;
+  }
+  
+  .request-details p strong {
+    font-weight: 500;
+    color: #333;
+  } 

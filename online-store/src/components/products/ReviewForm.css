@@ -1,0 +1,60 @@
+.review-form {
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.review-form h3 {
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.rating-input {
+  margin-bottom: 15px;
+}
+
+.rating-input p {
+  margin-bottom: 5px;
+  color: #666;
+}
+
+.stars-input {
+  display: flex;
+  gap: 5px;
+}
+
+.star {
+  font-size: 24px;
+  cursor: pointer;
+  color: #ddd;
+  transition: color 0.2s;
+}
+
+.star.active {
+  color: #ffd700;
+}
+
+.comment-input textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.submit-review-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.2s;
+}
+
+.submit-review-btn:hover {
+  background-color: #0056b3;
+} 
