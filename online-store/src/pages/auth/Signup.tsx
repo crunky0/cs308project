@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import './Login.css';
+import './Signup.css';
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
@@ -39,88 +39,88 @@ const SignUp = () => {
 
   return (
     <div className="login-container">
-      <div className="login-box">
+      <div className="login-box signup-box">
         <h2>Create an Account</h2>
-
         <form onSubmit={handleSubmit}>
           {error && <div className="error-message">{error}</div>}
+          <div className="signup-sections">
+            {/* Email and Password Section */}
+            <div className="form-section">
+              <div className="form-group">
+                <label>Email address</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                />
+              </div>
+              <div className="form-group">
+                <label>Password</label>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Create a password"
+                />
+              </div>
+              <div className="form-group">
+                <label>Confirm Password</label>
+                <input
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm your password"
+                />
+              </div>
+            </div>
 
-          <div className="form-group">
-            <label>Email address</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-            />
+            {/* Personal Information Section */}
+            <div className="form-section">
+              <div className="form-group">
+                <label>First Name</label>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter your first name"
+                />
+              </div>
+              <div className="form-group">
+                <label>Last Name</label>
+                <input
+                  type="text"
+                  required
+                  value={surname}
+                  onChange={(e) => setSurname(e.target.value)}
+                  placeholder="Enter your last name"
+                />
+              </div>
+              <div className="form-group">
+                <label>Tax ID</label>
+                <input
+                  type="text"
+                  required
+                  value={taxID}
+                  onChange={(e) => setTaxID(e.target.value)}
+                  placeholder="Enter your Tax ID"
+                />
+              </div>
+              <div className="form-group">
+                <label>Home Address</label>
+                <textarea
+                  required
+                  value={homeAddress}
+                  onChange={(e) => setHomeAddress(e.target.value)}
+                  placeholder="Enter your home address"
+                />
+              </div>
+            </div>
           </div>
-
-          <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Create a password"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Confirm Password</label>
-            <input
-              type="password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm your password"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>First Name</label>
-            <input
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your first name"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Last Name</label>
-            <input
-              type="text"
-              required
-              value={surname}
-              onChange={(e) => setSurname(e.target.value)}
-              placeholder="Enter your last name"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Tax ID</label>
-            <input
-              type="text"
-              required
-              value={taxID}
-              onChange={(e) => setTaxID(e.target.value)}
-              placeholder="Enter your Tax ID"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Home Address</label>
-            <textarea
-              required
-              value={homeAddress}
-              onChange={(e) => setHomeAddress(e.target.value)}
-              placeholder="Enter your home address"
-            />
-          </div>
-
           <button
             type="submit"
             className="submit-button"
