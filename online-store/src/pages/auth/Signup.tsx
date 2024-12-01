@@ -7,6 +7,10 @@ const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState('');
+  const [surname, setSurname] = useState('');
+  const [taxID, setTaxID] = useState('');
+  const [homeAddress, setHomeAddress] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { signup } = useAuth();
@@ -24,7 +28,7 @@ const SignUp = () => {
     }
 
     try {
-      await signup(email, password);
+      await signup(email, password, name, surname, taxID, homeAddress);
       navigate('/products');
     } catch (err: any) {
       setError(err.message);
@@ -71,6 +75,49 @@ const SignUp = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm your password"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>First Name</label>
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your first name"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Last Name</label>
+            <input
+              type="text"
+              required
+              value={surname}
+              onChange={(e) => setSurname(e.target.value)}
+              placeholder="Enter your last name"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Tax ID</label>
+            <input
+              type="text"
+              required
+              value={taxID}
+              onChange={(e) => setTaxID(e.target.value)}
+              placeholder="Enter your Tax ID"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Home Address</label>
+            <textarea
+              required
+              value={homeAddress}
+              onChange={(e) => setHomeAddress(e.target.value)}
+              placeholder="Enter your home address"
             />
           </div>
 

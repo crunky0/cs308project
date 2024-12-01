@@ -4,7 +4,6 @@ import { useAuth } from '../../context/AuthContext';
 import './Login.css';
 
 const Login = () => {
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -18,10 +17,10 @@ const Login = () => {
     setError('');
 
     try {
-      await login(email, password);
-      navigate('/products');
-    } catch (err) {
-      setError('Invalid credentials');
+      await login(email, password); // Calls the updated login function from AuthContext
+      navigate('/products'); // Redirects to the products page on successful login
+    } catch (err: any) {
+      setError(err.message || 'Invalid credentials'); // Displays error if login fails
     } finally {
       setIsLoading(false);
     }
@@ -31,23 +30,10 @@ const Login = () => {
     <div className="login-container">
       <div className="login-box">
         <h2>Welcome Back</h2>
-        
-        {/* Added mock credentials info */}
-        <div className="mock-info">
-          <p>Use these credentials to log in:</p>
-          <code>
-            Email: test@example.com<br />
-            Password: password123
-          </code>
-        </div>
 
         <form onSubmit={handleSubmit}>
-          {error && (
-            <div className="error-message">
-              {error}
-            </div>
-          )}
-          
+          {error && <div className="error-message">{error}</div>}
+
           <div className="form-group">
             <label>Email address</label>
             <input
@@ -58,7 +44,7 @@ const Login = () => {
               placeholder="Enter your email"
             />
           </div>
-          
+
           <div className="form-group">
             <label>Password</label>
             <input
@@ -70,8 +56,8 @@ const Login = () => {
             />
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="submit-button"
             disabled={isLoading}
           >
