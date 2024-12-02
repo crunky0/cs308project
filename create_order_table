@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS orders (
+    orderID SERIAL PRIMARY KEY,
+    userID INT NOT NULL,
+    productID INT NOT NULL,
+    orderStatus VARCHAR(50) DEFAULT 'Pending', -- Default status is 'Pending'
+    orderDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Automatically captures the order date and time
+    FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE, -- Deletes orders if user is deleted
+    FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE CASCADE -- Deletes orders if product is deleted
+);
