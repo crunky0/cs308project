@@ -1,11 +1,10 @@
-from sqlalchemy.future import select
 from sqlalchemy.exc import SQLAlchemyError
+from databases import Database
 from models import Order, OrderItem, Product
 from typing import Dict
-from db import database  # Import the Database instance
 
 class OrderService:
-    def __init__(self, db):
+    def __init__(self, db: Database):
         self.db = db
 
     async def create_order(self, order_data: Dict) -> Dict:
@@ -17,10 +16,6 @@ class OrderService:
 
         Returns:
             Dict: Confirmation message with the created order ID.
-
-        Raises:
-            ValueError: If stock is insufficient for any product.
-            SQLAlchemyError: If there is a database error.
         """
         try:
             # Use the transaction() method for database transaction management

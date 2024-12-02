@@ -67,6 +67,8 @@ class Product(Base):
         return f"<Product(name={self.productname}, price={self.price}, stock={self.stock})>"
 
 # Order Table
+# In models.py - Update the Order model to include a relationship to invoices
+
 class Order(Base):
     __tablename__ = 'orders'
 
@@ -81,8 +83,12 @@ class Order(Base):
     # Relationship to order items (an order can have many items)
     order_items = relationship("OrderItem", back_populates="order")
 
+    # Relationship to invoices (an order can have many invoices)
+    invoices = relationship("Invoice", back_populates="order")
+
     def __repr__(self):
         return f"<Order(order_id={self.orderid}, total_amount={self.total_amount})>"
+
 
 # Order Item Table
 class OrderItem(Base):
@@ -122,3 +128,19 @@ class Review(Base):
 
     def __repr__(self):
         return f"<Review(user_id={self.userid}, product_id={self.productid}, rating={self.review})>"
+    
+    # In models.py
+class Invoice(Base):
+    __tablename__ = 'invoices'
+
+    invoiceid = Column(Integer, primary_key=True, autoincrement=True)
+    orderid = Column(Integer, ForeignKey('orders.orderid'), nullable=False)
+    invoice_number = Column(String(50), nullable=False)
+    invoice_date = Column(DateTime, default=datetime.now(timezone.utc))
+    file_path = Column(String(255), nullable=False)
+
+    # Relationship to orders
+    order = relationship("Order", back_populates="invoices")
+
+    def __repr__(self):
+        return f"<Invoice(invoice_number={self.invoice_number}, order_id={self.orderid})>"
