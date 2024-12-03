@@ -35,7 +35,7 @@ async def get_stock(productID: int):
         if product["stock"] == 0:
             message = "Out of Stock."
         else:
-            message = f"{product["stock"]} items available."
+            message = f"{product['stock']} items available."
         return message
     else:
         raise HTTPException(status_code=400, detail="Selected product cannot be found.")
