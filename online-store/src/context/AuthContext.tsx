@@ -79,7 +79,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
       const data = await response.json();
       console.log("Signup response data:", data); // Debugging line
 
-      setUser({ userid: data.user.id, email: data.user.email });
+      setUser({ userid: data.user.userid, email: data.user.email });
     } catch (error: any) {
       console.error("Signup error:", error.message);
       throw new Error(error.message);

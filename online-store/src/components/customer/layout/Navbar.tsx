@@ -35,7 +35,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
       <div className="nav-content">
         <div className="nav-left">
           <Link to="/" className="logo">
-            <span className="logo-text">Shopcart</span>
+            <span className="logo-text">Matrak Store</span>
           </Link>
 
           <div className="nav-links">

@@ -61,9 +61,15 @@ async def create_user(user: UserCreate):
         "taxid": user.taxID,
         "homeaddress": user.homeAddress
     }
-    await database.execute(query=sql_query, values=values)
+    db_user = await database.fetch_one(query=sql_query, values=values)
     
-    return {"message": "User created successfully"}
+    return {
+        "message": "Signup successful",
+        "user": {
+            "userid": db_user["userid"],
+            "email": user.email
+        }
+    }
 
 
 # API Endpoint to login
@@ -83,7 +89,7 @@ async def login(user: UserLogin):
     return {
         "message": "Login successful",
         "user": {
-            "userid": db_user["userid"],  # Assuming 'userid' is the column name in your database
-            "email": db_user["username"]  # Assuming 'username' is used as email/username
+            "userid": db_user["userid"],  
+            "email": db_user["username"]
         }
     }

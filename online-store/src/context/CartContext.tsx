@@ -104,7 +104,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const removeFromCart = async (productid: number, userid?: number) => {
     if (userid) {
       try {
-        const response = await fetch('http://localhost:8000/cart/remove', {
+        const response = await fetch(`http://localhost:8000/cart/remove?userid=${userid}&productid=${productid}`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userid, productid }),
@@ -127,7 +127,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (userid) {
       try {
         const endpoint = increment ? 'increase' : 'decrease';
-        const response = await fetch(`http://localhost:8000/cart/${endpoint}`, {
+        const response = await fetch(`http://localhost:8000/cart/${endpoint}?userid=${userid}&productid=${productid}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userid, productid }),

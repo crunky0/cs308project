@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback , useRef} from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../../components/customer/layout/Navbar';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -10,17 +10,15 @@ const Cart = () => {
   const userId = user?.userid;
   const { cart, total, fetchCart, updateQuantity, removeFromCart } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const isFetching = useRef(false);
-
-  const fetchCartData = useCallback(async () => {
-    if (!isFetching.current) {
-      isFetching.current = true;
-      await fetchCart(userId); // Fetch cart data for logged-in or guest users
-      isFetching.current = false;
+  const fetchCartData = useCallback(() => {
+    if (userId) {
+      fetchCart(userId);
     }
   }, [fetchCart, userId]);
 
+  // Trigger fetching only when userId changes
   useEffect(() => {
     fetchCartData();
   }, [fetchCartData]);
