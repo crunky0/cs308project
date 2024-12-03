@@ -100,9 +100,50 @@
 }
   
 .stars {
-    color: #FFD700;
-    letter-spacing: 2px;
-}
+    display: inline-flex;
+    font-size: 1.5rem; /* Yıldız boyutu */
+    line-height: 1;
+  }
+  
+  .star {
+    position: relative;
+    display: inline-block;
+    width: 1em; /* Yıldız genişliği */
+    height: 1em;
+    color: gold;
+  }
+  .star.full {
+    content: "★";
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    color: gold;
+    z-index: 1;
+  }
+  .star.half::before {
+    content: "★";
+    position: absolute;
+    left: 0;
+    width: 40%; /* Yıldızın yarısı */
+    overflow: hidden;
+    display: inline-block;
+    color: gold;
+    z-index: 1;
+  }
+  
+  .star.half::after {
+    content: "☆";
+    position: absolute;
+    left: 0;
+    width: 100%; /* Yıldızın tamamı */
+    display: inline-block;
+    color: #ccc; /* Boş yıldız rengi */
+    z-index: 0;
+  }
+  
+  .star.empty {
+    color: #ccc; /* Boş yıldız rengi */
+  }
   
 .review-count {
     color: var(--color-gray-500);

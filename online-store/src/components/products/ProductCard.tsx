@@ -46,13 +46,35 @@ const ProductCard: React.FC<ProductCardProps> = ({
       <div className="product-info">
         <h3>{name}</h3>
         {description && <p className="description">{description}</p>}
-        {averageRating !== undefined && (
-          <div className="rating">
-            <span className="stars">
-              {'★'.repeat(Math.floor(averageRating))}{'☆'.repeat(5 - Math.floor(averageRating))}
-            </span>
-          </div>
-        )}
+        {averageRating !== undefined && averageRating !== null ? (
+  <div className="rating">
+    <span className="stars">
+      {
+        Array.from({ length: 5 }).map((_, index) => {
+          const fullStarThreshold = index + 1;
+          const halfStarThreshold = index + 0.5;
+          if (averageRating >= fullStarThreshold) {
+            return <span key={index} className="star full">★</span>; // Tam yıldız
+          } else if (averageRating >= halfStarThreshold) {
+            return <span key={index} className="star half">★</span>; // Yarım yıldız
+          } else {
+            return <span key={index} className="star empty">☆</span>; // Boş yıldız
+          }
+        })
+      }
+    </span>
+    <span className="rating-count">{averageRating.toFixed(1)}/5</span>
+  </div>
+) : (
+  <div className="rating">
+    <span className="stars">
+      {'☆'.repeat(5)}
+    </span>
+    <span className="rating-count">0/5</span>
+  </div>
+)}
+
+
         <div className="product-footer">
           <div className="price">
             {discountedPrice ? (

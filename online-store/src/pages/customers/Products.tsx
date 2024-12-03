@@ -40,7 +40,8 @@ const Products = () => {
   const [showLeftScroll, setShowLeftScroll] = useState(false);
   const [showRightScroll, setShowRightScroll] = useState(true);
   const [loading, setLoading] = useState<boolean>(false);
-
+  const [sortBy, setSortBy] = useState("popular");
+  
   const fetchProductsByCategory = async (categoryId: number) => {
     setLoading(true);
     try {
@@ -98,6 +99,7 @@ const Products = () => {
       setTimeout(checkScroll, 100);
     }
   };
+  
   const categoriesRef = useRef<HTMLDivElement>(null);
   const checkScroll = useCallback(() => {
     if (categoriesRef.current) {

@@ -84,14 +84,16 @@ const Cart = () => {
                     <span>{item.quantity}</span>
                     <button onClick={() => handleIncreaseQuantity(item.productid)}>+</button>
                   </div>
-                  <button onClick={() => handleRemoveItem(item.productid)}>Remove</button>
+                  <button className="remove-btn"
+                   onClick={() => handleRemoveItem(item.productid)}>Remove</button>
                 </div>
               ))}
             </div>
             <div className="cart-summary">
               <h2>Order Summary</h2>
               <p>Total: ${total.toFixed(2)}</p>
-              <button onClick={handleCheckout}>Proceed to Checkout</button>
+              <button className="checkout-btn"
+               onClick={handleCheckout}>Proceed to Checkout</button>
             </div>
           </>
         )}
