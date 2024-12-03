@@ -1,18 +1,18 @@
-from fastapi import HTTPException, APIRouter
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException
 from db import database
+from pydantic import BaseModel
+import os
 
-
-# Create APIRouter instance for user-related endpoints
 router = APIRouter()
 
+# Helper function to load SQL files
+def load_sql_file(filename: str) -> str:
+    file_path = os.path.join("sql", filename)
+    with open(file_path, "r") as file:
+        return file.read()
 
-# Pydantic models for request bodies
-class Category(BaseModel):
-    categoryid: int
-    name: str
-
-class Product(BaseModel):
+# Response model for products
+class ProductResponse(BaseModel):
     productid: int
     serialnumber: int
     productname: str
@@ -23,27 +23,17 @@ class Product(BaseModel):
     price: float
     stock: int
     categoryid: int
+    soldamount: int
+    discountprice: float | None
+    image: str
 
-# Load SQL from file function
-def load_sql_file(filename: str) -> str:
-    with open(filename, 'r') as file:
-        return file.read()
-
-
-
-# API Endpoint to search products by category
-@router.get("/search/by_category/{category_name}")
-async def get_products_by_category(category_name: str):
-
-
-    # Check if the category exists
-    find_product_by_category_query = load_sql_file('sql/find_product_by_category.sql')
-    all_products_by_category = await database.fetch_all(query=find_product_by_category_query, values={"category_name": category_name})
+# Endpoint to get products by category ID
+@router.get("/products/category/{category_id}/", response_model=list[ProductResponse])
+async def get_products_by_category(category_id: int):
+    query = load_sql_file("find_products_by_category.sql")
+    products = await database.fetch_all(query=query, values={"categoryID": category_id})
     
-    if not all_products_by_category:
-        raise HTTPException(status_code=400, detail="No product can be found in the given category.")
-
-
+    if not products:
+        raise HTTPException(status_code=404, detail="No products found for this category")
     
-    return [Product(**dict(product)) for product in all_products_by_category]
-
+    return [dict(product) for product in products]

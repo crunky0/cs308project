@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useState } from 'react';
+import { useCart } from './CartContext';
 
 // Define User and AuthContext types
 interface User {
+  userid: number;
   email: string;
 }
 
@@ -20,36 +22,40 @@ interface AuthContextType {
   logout: () => void;
 }
 
-// Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  // Login function
   const login = async (email: string, password: string) => {
     try {
       const response = await fetch('http://localhost:8000/users/login/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: email, password }),
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || 'Failed to login');
       }
-
+  
       const data = await response.json();
-      setUser({ email: data.user });
-    } catch (error: any) {
-      throw new Error(error.message);
+      setUser({ userid: data.user.userid, email: data.user.email });
+  
+      // Merge guest cart with logged-in user's cart
+      const { mergeGuestCart } = useCart();
+      await mergeGuestCart(data.user.userid);
+  
+      // Fetch logged-in user's updated cart
+      const { fetchCart } = useCart();
+      await fetchCart(data.user.userid);
+    } catch (error) {
+      console.error('Login error:', error);
+      throw new Error();
     }
   };
 
-  // Signup function
   const signup = async (
     email: string,
     password: string,
@@ -61,9 +67,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     try {
       const response = await fetch('http://localhost:8000/users/register/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username: email,
           password,
@@ -80,34 +84,27 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
         throw new Error(errorData.detail || 'Failed to sign up');
       }
 
-      setUser({ email });
+      const data = await response.json();
+      console.log("Signup response data:", data); // Debugging line
+
+      setUser({ userid: data.user.id, email: data.user.email });
     } catch (error: any) {
+      console.error("Signup error:", error.message);
       throw new Error(error.message);
     }
   };
 
-  // Logout function
-  const logout = () => {
-    setUser(null);
-  };
+  const logout = () => setUser(null);
 
-  // Provide the context
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: !!user,
-        login,
-        signup,
-        logout,
-      }}
+      value={{ user, isAuthenticated: !!user, login, signup, logout }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Hook to use AuthContext
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

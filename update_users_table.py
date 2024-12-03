@@ -1,22 +1,22 @@
 from db import database
 import asyncio
 
-async def update_users_table():
-    
-    # Alter table to add new columns
-    alter_table_query = """
-    ALTER TABLE users
-    ADD COLUMN IF NOT EXISTS taxID VARCHAR(50),
-    ADD COLUMN IF NOT EXISTS homeAddress VARCHAR(255),
-    ADD COLUMN IF NOT EXISTS name VARCHAR(100),
-    ADD COLUMN IF NOT EXISTS surname VARCHAR(100),
-    ADD COLUMN IF NOT EXISTS email VARCHAR(100) UNIQUE;
-    """
+async def update_products_table():
+    # Separate SQL commands into individual queries
+    rename_user_id_query = "ALTER TABLE cart RENAME COLUMN user_id TO userid;"
+    rename_product_id_query = "ALTER TABLE cart RENAME COLUMN product_id TO productid;"
 
     await database.connect()
-    await database.execute(alter_table_query)
-    await database.disconnect()
+    try:
+        # Execute queries sequentially
+        await database.execute(rename_user_id_query)
+        await database.execute(rename_product_id_query)
+        print("Table columns renamed successfully.")
+    except Exception as e:
+        print(f"Error during migration: {e}")
+    finally:
+        await database.disconnect()
 
 # Run the migration
 if __name__ == "__main__":
-    asyncio.run(update_users_table())
+    asyncio.run(update_products_table())

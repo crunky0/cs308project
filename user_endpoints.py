@@ -79,4 +79,11 @@ async def login(user: UserLogin):
     if not db_user or not verify_password(user.password, db_user["password"]):
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
-    return {"message": "Login successful", "user": db_user["username"]}
+    # Return userID and username
+    return {
+        "message": "Login successful",
+        "user": {
+            "userid": db_user["userid"],  # Assuming 'userid' is the column name in your database
+            "email": db_user["username"]  # Assuming 'username' is used as email/username
+        }
+    }

@@ -1,86 +1,72 @@
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import './ProductCard.css';
 
+// Define props for the ProductCard component
 interface ProductCardProps {
-  id: number;
-  name: string;
+  productid: number;
+  productname: string;
   price: number;
-  discountedPrice?: number;
+  discountedPrice?: number; // Optional field
   image: string;
-  description: string;
-  rating: number;
-  reviews: number;
-  color: string;
-  material: string;
-  date: string;
-  categoryId: number;
+  description?: string; // Optional field
+  averageRating?: number; // Optional field
+  onClick?: () => void; // Optional field for custom click handler
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
-  id,
-  name,
+  productid: id,
+  productname: name,
   price,
   discountedPrice,
   image,
   description,
-  rating = 0,
-  reviews = 0
+  averageRating,
+  onClick,
 }) => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  const renderStars = (rating: number) => {
-    return "★".repeat(Math.floor(rating)) + "☆".repeat(5 - Math.floor(rating));
-  };
+  const { user } = useAuth(); // Retrieve the logged-in user
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent the card click event from firing
-    addToCart({
-      id,
-      name,
-      price,
-      image,
-      size: "Default" // You might want to handle this differently
-    });
-  };
-
-
-  const handleClick = () => {
-    navigate(`/product/${id}`);
-  };
-
-  const renderPrice = () => {
-    if (discountedPrice) {
-      return (
-        <div className="price-container">
-          <span className="original-price">${price}</span>
-          <span className="discounted-price">${discountedPrice}</span>
-        </div>
-      );
+    if (user) {
+      // Add to cart for logged-in users
+      addToCart(id, 1, user.userid); // Pass product ID, quantity, and user ID
+    } else {
+      // Add to cart for guests
+      addToCart(id, 1); // Only pass product ID and quantity
     }
-    return <span className="price">${price}</span>;
-  };
+  };  
 
   return (
-    <div className="product-card" onClick={handleClick}>
-      <div className="wishlist-button" onClick={(e) => e.stopPropagation()}>♡</div>
+    <div className="product-card" onClick={onClick || (() => navigate(`/product/${id}`))}>
       <img src={image} alt={name} className="product-image" />
       <div className="product-info">
         <h3>{name}</h3>
-        <p className="description">{description}</p>
-        {rating > 0 && (
+        {description && <p className="description">{description}</p>}
+        {averageRating !== undefined && (
           <div className="rating">
-            <span className="stars">{renderStars(rating)}</span>
-            <span className="review-count">({reviews})</span>
+            <span className="stars">
+              {'★'.repeat(Math.floor(averageRating))}{'☆'.repeat(5 - Math.floor(averageRating))}
+            </span>
           </div>
         )}
         <div className="product-footer">
-          {renderPrice()}
-          <button 
-          className="add-to-cart-btn"
-          onClick={handleAddToCart}
-        >
-          Add to Cart
-        </button>
+          <div className="price">
+            {discountedPrice ? (
+              <>
+                <span className="original-price">${price.toFixed(2)}</span>
+                <span className="discounted-price">${discountedPrice.toFixed(2)}</span>
+              </>
+            ) : (
+              <span>${price.toFixed(2)}</span>
+            )}
+          </div>
+          <button className="add-to-cart-btn" onClick={handleAddToCart}>
+            Add to Cart
+          </button>
         </div>
       </div>
     </div>

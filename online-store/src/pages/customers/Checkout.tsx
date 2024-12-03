@@ -319,10 +319,10 @@ const Checkout: React.FC = () => {
             <h2>Order Summary</h2>
             <div className="summary-items">
               {cart.map((item: CartItem) => (
-                <div key={`${item.id}-${item.size}`} className="summary-item">
-                  <img src={item.image} alt={item.name} />
+                <div key={`${item.productid}-${item.size}`} className="summary-item">
+                  <img src={item.image} alt={item.productname} />
                   <div className="item-details">
-                    <h3>{item.name}</h3>
+                    <h3>{item.productname}</h3>
                     <p>Size: {item.size}</p>
                     <p>Quantity: {item.quantity}</p>
                     <p>${item.price.toFixed(2)}</p>

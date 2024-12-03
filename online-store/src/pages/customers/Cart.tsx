@@ -1,19 +1,58 @@
-import React from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/customer/layout/Navbar';
+import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import './Cart.css';
-import { useCart, CartItem } from '../../context/CartContext';
 
 const Cart = () => {
+  const { user } = useAuth();
+  const userId = user?.userid;
+  const { cart, total, fetchCart, updateQuantity, removeFromCart } = useCart();
   const navigate = useNavigate();
-  const { cart, updateQuantity, removeFromCart, total } = useCart();
+
+  const fetchCartData = useCallback(() => {
+    fetchCart(userId); // Pass `undefined` for guests; userId for logged-in users
+  }, [fetchCart, userId]);
+
+  useEffect(() => {
+    fetchCartData();
+  }, [fetchCartData]);
 
   const handleSearch = (query: string) => {
     console.log('Search query:', query);
   };
 
   const handleCheckout = () => {
+    if (!userId) {
+      alert('Please log in to proceed to checkout.');
+      return;
+    }
     navigate('/checkout');
+  };
+
+  const handleDecreaseQuantity = (productid: number) => {
+    if (userId) {
+      updateQuantity(productid, false, userId); // Decrease quantity for logged-in users
+    } else {
+      updateQuantity(productid, false); // Decrease quantity for guests
+    }
+  };
+
+  const handleIncreaseQuantity = (productid: number) => {
+    if (userId) {
+      updateQuantity(productid, true, userId); // Increase quantity for logged-in users
+    } else {
+      updateQuantity(productid, true); // Increase quantity for guests
+    }
+  };
+
+  const handleRemoveItem = (productid: number) => {
+    if (userId) {
+      removeFromCart(productid, userId); // Remove item for logged-in users
+    } else {
+      removeFromCart(productid); // Remove item for guests
+    }
   };
 
   return (
@@ -28,57 +67,31 @@ const Cart = () => {
         ) : (
           <>
             <div className="cart-items">
-              {cart.map((item: CartItem) => (
-                <div key={`${item.id}-${item.size}`} className="cart-item">
-                  <img src={item.image} alt={item.name} className="item-image" />
+              {cart.map(item => (
+                <div key={item.productid} className="cart-item">
                   <div className="item-details">
-                    <h3>{item.name}</h3>
-                    <p>Size: {item.size}</p>
-                    <p className="price">${item.price.toFixed(2)}</p>
+                    <h3>{item.productname}</h3>
+                    <p>Quantity: {item.quantity}</p>
+                    <p>Price: ${item.price.toFixed(2)}</p>
                   </div>
                   <div className="quantity-controls">
-                    <button 
-                      onClick={() => updateQuantity(item.id, item.size, item.quantity - 1)}
+                    <button
+                      onClick={() => handleDecreaseQuantity(item.productid)}
                       disabled={item.quantity <= 1}
                     >
                       -
                     </button>
                     <span>{item.quantity}</span>
-                    <button 
-                      onClick={() => updateQuantity(item.id, item.size, item.quantity + 1)}
-                    >
-                      +
-                    </button>
+                    <button onClick={() => handleIncreaseQuantity(item.productid)}>+</button>
                   </div>
-                  <button 
-                    className="remove-btn"
-                    onClick={() => removeFromCart(item.id, item.size)}
-                  >
-                    Remove
-                  </button>
+                  <button onClick={() => handleRemoveItem(item.productid)}>Remove</button>
                 </div>
               ))}
             </div>
             <div className="cart-summary">
               <h2>Order Summary</h2>
-              <div className="summary-row">
-                <span>Subtotal</span>
-                <span>${total.toFixed(2)}</span>
-              </div>
-              <div className="summary-row">
-                <span>Shipping</span>
-                <span>Free</span>
-              </div>
-              <div className="summary-row total">
-                <span>Total</span>
-                <span>${total.toFixed(2)}</span>
-              </div>
-              <button 
-                className="checkout-btn"
-                onClick={handleCheckout}
-              >
-                Proceed to Checkout
-              </button>
+              <p>Total: ${total.toFixed(2)}</p>
+              <button onClick={handleCheckout}>Proceed to Checkout</button>
             </div>
           </>
         )}
@@ -87,4 +100,4 @@ const Cart = () => {
   );
 };
 
-export default Cart; 
+export default Cart;

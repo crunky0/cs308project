@@ -14,5 +14,8 @@ CREATE TABLE IF NOT EXISTS products (
     warranty VARCHAR(50) NOT NULL,          
     price NUMERIC(10,2) NOT NULL CHECK (price > 0),
     stock INT NOT NULL CHECK (stock >=0 ),
-    categoryID INT NOT NULL REFERENCES categories(categoryID)
+    categoryID INT NOT NULL REFERENCES categories(categoryID),
+    soldamount INT NOT NULL,
+    discountPrice NUMERIC(10,2) DEFAULT NULL,
+    image VARCHAR(255) NOT NULL
 );
