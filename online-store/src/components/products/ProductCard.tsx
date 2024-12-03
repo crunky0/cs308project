@@ -58,7 +58,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           } else if (averageRating >= halfStarThreshold) {
             return <span key={index} className="star half">★</span>; // Yarım yıldız
           } else {
-            return <span key={index} className="star empty">☆</span>; // Boş yıldız
+            return <span key={index} className="star empty">★</span>; // Boş yıldız
           }
         })
       }
@@ -68,7 +68,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 ) : (
   <div className="rating">
     <span className="stars">
-      {'☆'.repeat(5)}
+      {'★'.repeat(5)}
     </span>
     <span className="rating-count">0/5</span>
   </div>
