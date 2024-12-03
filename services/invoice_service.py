@@ -19,7 +19,7 @@ class InvoiceService:
             os.makedirs(self.output_dir)
         logger.info(f"Invoice output directory set to: {self.output_dir}")
         if platform.system() == "Windows":
-            path_wkhtmltopdf = 'D:\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'
+            path_wkhtmltopdf = 'C:\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'
         else:
             path_wkhtmltopdf = '/usr/local/bin/wkhtmltopdf'  # Path for macOS/Linux
 
