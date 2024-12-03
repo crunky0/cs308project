@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback , useRef} from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/customer/layout/Navbar';
 import { useCart } from '../../context/CartContext';
@@ -11,8 +11,14 @@ const Cart = () => {
   const { cart, total, fetchCart, updateQuantity, removeFromCart } = useCart();
   const navigate = useNavigate();
 
-  const fetchCartData = useCallback(() => {
-    fetchCart(userId); // Pass `undefined` for guests; userId for logged-in users
+  const isFetching = useRef(false);
+
+  const fetchCartData = useCallback(async () => {
+    if (!isFetching.current) {
+      isFetching.current = true;
+      await fetchCart(userId); // Fetch cart data for logged-in or guest users
+      isFetching.current = false;
+    }
   }, [fetchCart, userId]);
 
   useEffect(() => {

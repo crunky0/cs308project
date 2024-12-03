@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import SyncCart from './components/SyncCart';
+
 
 // Customer routes
 import Products from './pages/customers/Products';
@@ -20,6 +22,7 @@ function App() {
   return (
     <AuthProvider>
       <CartProvider>
+        <SyncCart />
         <div className="app-container">
           <Routes>
             {/* Customer routes */}

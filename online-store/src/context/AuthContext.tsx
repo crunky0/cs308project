@@ -42,19 +42,11 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
   
       const data = await response.json();
       setUser({ userid: data.user.userid, email: data.user.email });
-  
-      // Merge guest cart with logged-in user's cart
-      const { mergeGuestCart } = useCart();
-      await mergeGuestCart(data.user.userid);
-  
-      // Fetch logged-in user's updated cart
-      const { fetchCart } = useCart();
-      await fetchCart(data.user.userid);
     } catch (error) {
       console.error('Login error:', error);
       throw new Error();
     }
-  };
+  };  
 
   const signup = async (
     email: string,
