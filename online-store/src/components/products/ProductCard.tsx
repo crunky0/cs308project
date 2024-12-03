@@ -63,7 +63,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
         })
       }
     </span>
-    <span className="rating-count">{averageRating.toFixed(1)}/5</span>
+    <span className="rating-count">
+  {Number.isInteger(averageRating) 
+    ? averageRating 
+    : averageRating.toFixed(1)
+  }/5
+</span>
   </div>
 ) : (
   <div className="rating">
