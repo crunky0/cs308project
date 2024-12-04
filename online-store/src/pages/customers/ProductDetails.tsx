@@ -10,8 +10,8 @@ interface Review {
   reviewid: number;
   productid: number;
   userid: number;
-  userfirstname: string;
-  userlastname: string;
+  name: string;
+  surname: string;
   rating: number;
   comment: string;
   date: string;
@@ -43,22 +43,22 @@ const ProductDetails = () => {
     const fetchProductDetails = async () => {
       try {
         setLoading(true);
-
+    
         // Fetch product details
         const productResponse = await fetch(`http://localhost:8000/products/${id}/`);
         if (!productResponse.ok) {
           throw new Error('Failed to fetch product details');
         }
         const productData = await productResponse.json();
-
+    
         // Fetch average rating
         const ratingResponse = await fetch(`http://localhost:8000/products/${id}/average-rating/`);
         const averageRating = ratingResponse.ok ? await ratingResponse.json() : null;
-
+    
         // Fetch reviews
         const reviewsResponse = await fetch(`http://localhost:8000/products/${id}/reviews/`);
         const reviewsData = reviewsResponse.ok ? await reviewsResponse.json() : [];
-
+    
         setProduct({ ...productData, rating: averageRating });
         setReviews(reviewsData);
       } catch (error) {
@@ -71,6 +71,7 @@ const ProductDetails = () => {
         setLoading(false);
       }
     };
+    
 
     fetchProductDetails();
   }, [id]);
@@ -102,13 +103,11 @@ const ProductDetails = () => {
   
     try {
       const payload = {
-        userid: user.userid,        // Match backend field name
-        productid: product?.productid, // Match backend field name
-        rating,                    // Send rating as is
-        comment,                   // Ensure it matches the type (str)
+        userid: user.userid,
+        productid: product?.productid,
+        rating,
+        comment,
       };
-  
-      console.log('Submitting review payload:', payload); // Debugging line
   
       const response = await fetch(`http://localhost:8000/reviews/`, {
         method: 'POST',
@@ -123,12 +122,19 @@ const ProductDetails = () => {
         throw new Error(errorData.detail || 'Failed to submit review');
       }
   
-      // Instead of adding the review directly, show a success message
+      // Yorum gönderimi başarılıysa, yeni yorumları fetch et
+      const reviewsResponse = await fetch(`http://localhost:8000/products/${product?.productid}/reviews/`);
+      const updatedReviews = reviewsResponse.ok ? await reviewsResponse.json() : [];
+      setReviews(updatedReviews); // Yorumları güncelle
+  
       alert("Your review has been submitted and is awaiting approval.");
     } catch (error) {
       console.error('Error submitting review:', error);
     }
   };
+  
+  
+  
   
   
 
@@ -169,19 +175,22 @@ const ProductDetails = () => {
         </div>
       </div>
       <div className="reviews-section">
-        <h2>Reviews</h2>
-        <ReviewForm onSubmit={handleReviewSubmit} />
-        {reviews.map((review) => (
-          <div key={review.reviewid} className="review-item">
-            <p>
-              {review.userfirstname} {review.userlastname}
-            </p>
-            <p>Rating: {review.rating}</p>
-            <p>{review.comment}</p>
-            <p>{review.date}</p>
-          </div>
-        ))}
-      </div>
+  <h2>Reviews</h2>
+  <ReviewForm onSubmit={handleReviewSubmit} />
+  {reviews.map((review) => (
+  <div key={review.reviewid} className="review-item">
+    <p>
+      <strong>{review.name ? review.name : "Anonymous"} {review.surname ? review.surname : ""}</strong>
+    </p>
+    <p>Rating: {review.rating}</p>
+    <p>{review.comment}</p>
+    
+  </div>
+))}
+
+</div>
+
+
     </div>
   );
 };

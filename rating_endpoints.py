@@ -26,6 +26,8 @@ class ReviewResponse(BaseModel):
     rating: float
     comment: Optional[str] 
     approved: bool
+    name: Optional[str]  # User's name
+    surname: Optional[str]
 
 @router.post("/reviews/", response_model=ReviewResponse)
 async def create_review(review: ReviewCreate):
@@ -49,11 +51,10 @@ async def create_review(review: ReviewCreate):
 # Endpoint to retrieve all reviews for a specific product
 @router.get("/products/{productid}/reviews/", response_model=List[ReviewResponse])
 async def get_reviews_for_product(productid: int):
-    # Load the SQL query from the file
-    get_reviews_query = load_sql_file("get_reviews_for_product.sql")
-    
-    reviews = await database.fetch_all(query=get_reviews_query, values={"productid": productid})
+    query = load_sql_file("get_reviews_for_product.sql")  # Updated SQL file
+    reviews = await database.fetch_all(query=query, values={"productid": productid})
     return [ReviewResponse(**review) for review in reviews]
+
 
 @router.put("/reviews/{reviewid}/approve/", response_model=ReviewResponse)
 async def approve_review(reviewid: int):
