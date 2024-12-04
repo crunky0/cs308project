@@ -12,16 +12,22 @@ const Cart = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const fetchCartData = useCallback(() => {
-    if (userId) {
-      fetchCart(userId);
-    }
-  }, [fetchCart, userId]);
+  
 
-  // Trigger fetching only when userId changes
+  const fetchCartData = useCallback(() => {
+    fetchCart(userId);
+  }, [fetchCart, userId]);
   useEffect(() => {
-    fetchCartData();
-  }, [fetchCartData]);
+    console.log('userId:', userId);
+  }, [userId]);
+  
+
+  // Trigger fetching only when userId changesr
+  useEffect(() => {
+    if (userId) {
+        fetchCartData();
+    }
+}, [userId]);
 
   const handleSearch = (query: string) => {
     console.log('Search query:', query);
