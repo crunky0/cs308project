@@ -43,3 +43,53 @@ class OrderService:
                 return {"orderid": orderid, "message": "Order created successfully"}
         except Exception as e:
             raise Exception(f"Order creation error: {str(e)}")
+    async def get_orders_for_user(self, userid: int):
+        """
+        Fetch all orders for a specific user along with product details, including images and order status.
+
+        Args:
+            userid (int): The user ID to fetch orders for.
+
+        Returns:
+            List[dict]: A list of orders with product details.
+        """
+        try:
+            query = """
+                SELECT
+                    o.orderid,
+                    o.userid,
+                    o.totalamount,
+                    o.status,
+                    oi.productid,
+                    p.productname,
+                    p.image,
+                    oi.quantity,
+                    oi.price
+                FROM orders o
+                JOIN order_items oi ON o.orderid = oi.orderid
+                JOIN products p ON oi.productid = p.productid
+                WHERE o.userid = :userid
+            """
+            rows = await self.db.fetch_all(query, {"userid": userid})
+            
+            orders = {}
+            for row in rows:
+                orderid = row["orderid"]
+                if orderid not in orders:
+                    orders[orderid] = {
+                        "orderid": orderid,
+                        "userid": row["userid"],
+                        "totalamount": row["totalamount"],
+                        "status": row["status"],
+                        "items": []
+                    }
+                orders[orderid]["items"].append({
+                    "productid": row["productid"],
+                    "productname": row["productname"],
+                    "image": row["image"],
+                    "quantity": row["quantity"],
+                    "price": row["price"]
+                })
+            return list(orders.values())
+        except SQLAlchemyError as e:
+            raise Exception(f"Database error while fetching orders: {str(e)}")

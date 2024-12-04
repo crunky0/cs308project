@@ -36,6 +36,7 @@ const Checkout: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [orderNumber, setOrderNumber] = useState<number | null>(null);
+  const [invoiceHtml, setInvoiceHtml] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchShippingInfo = async () => {
@@ -92,12 +93,12 @@ const Checkout: React.FC = () => {
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
-
+  
     try {
       if (!user || !shippingInfo) {
         throw new Error('User or shipping information is missing');
       }
-
+  
       // Prepare order data
       const orderData = {
         userid: user.userid,
@@ -108,33 +109,33 @@ const Checkout: React.FC = () => {
           price: item.price
         }))
       };
-      console.log('Order Data:', orderData);
-
-      // Send order creation request
-      const orderResponse = await fetch('http://localhost:8000/create_order', {
+  
+      // Send order creation request with invoice
+      const orderResponse = await fetch('http://localhost:8000/create_order_with_invoice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData)
       });
-
+  
       if (!orderResponse.ok) {
         const errorData = await orderResponse.json();
         throw new Error(errorData.detail || 'Failed to create order');
       }
-
+  
       const orderResult = await orderResponse.json();
       setOrderNumber(orderResult.orderid);
-
+      setInvoiceHtml(orderResult.invoice_html); // Store the invoice HTML for rendering
+  
       // Empty the cart
       const cartResponse = await fetch(`http://localhost:8000/cart/empty?userid=${user.userid}`, {
         method: 'DELETE'
       });
-
+  
       if (!cartResponse.ok) {
         const errorData = await cartResponse.json();
         console.warn('Failed to empty cart:', errorData.detail);
       }
-
+  
       clearCart();
       setCurrentStep(3);
       setShowConfirmationModal(true);
@@ -143,7 +144,7 @@ const Checkout: React.FC = () => {
     } finally {
       setIsProcessing(false);
     }
-  };
+  };  
 
   const handleContinueShopping = () => {
     clearCart();
@@ -263,6 +264,15 @@ const Checkout: React.FC = () => {
                     <h2>Order Confirmed!</h2>
                     <p>Your order has been successfully placed.</p>
                     <p>Order #{orderNumber}</p>
+                    {invoiceHtml && (
+                      <div>
+                        <h2>Invoice</h2>
+                        <div
+                          dangerouslySetInnerHTML={{ __html: invoiceHtml }}
+                          className="invoice-html"
+                        />
+                      </div>
+                    )}
                     <button className="continue-btn" onClick={handleContinueShopping}>
                       Continue Shopping
                     </button>
