@@ -3,7 +3,10 @@ SELECT
     userid, 
     productid, 
     rating,
-    comment, 
+    CASE 
+        WHEN approved = TRUE THEN comment 
+        ELSE 'Not Approved' 
+    END AS comment,
     approved
 FROM ratings
-WHERE productID = :productid AND approved = TRUE;
+WHERE productid = :productid;
