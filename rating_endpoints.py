@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException
+from typing import Optional
 from db import database
 import os
 from typing import List
@@ -23,7 +24,7 @@ class ReviewResponse(BaseModel):
     userid: int
     productid: int
     rating: float
-    comment: str
+    comment: Optional[str] 
     approved: bool
 
 @router.post("/reviews/", response_model=ReviewResponse)
