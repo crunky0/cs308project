@@ -1,58 +1,82 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/customer/layout/Navbar';
 import './Orders.css';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext'; // Import AuthContext for user details
 
 interface OrderItem {
-  id: string;
+  id: number;
   name: string;
   quantity: number;
   price: number;
-  imageUrl: string;
+  image: string; // Using 'image' as provided by the backend
 }
 
 interface Order {
-  id: string;
+  id: number;
   date: string;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'processing' | 'in-transit' | 'delivered';
   items: OrderItem[];
   total: number;
 }
 
 const OrdersPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth(); // Get logged-in user info
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // This would typically come from an API call
-  const orders: Order[] = [
-    {
-      id: 'ORD-123',
-      date: '2024-11-20',
-      status: 'delivered',
-      items: [
-        {
-          id: '1',
-          name: 'Sample Product',
-          quantity: 2,
-          price: 29.99,
-          imageUrl: '/sample-product.jpg'
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        if (!user) {
+          throw new Error('User not logged in');
         }
-      ],
-      total: 59.98
-    }
-  ];
+
+        const response = await fetch(`http://localhost:8000/orders/${user.userid}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch orders');
+        }
+
+        const data = await response.json();
+        const todayDate = new Date().toLocaleDateString();
+
+        const formattedOrders = data.map((order: any) => ({
+          id: order.orderid,
+          date: todayDate, // Adjust if date format differs
+          status: order.status,
+          items: order.items.map((item: any) => ({
+            id: item.productid,
+            name: item.productname,
+            quantity: item.quantity,
+            price: item.price,
+            image: item.image, // Backend provides 'image' field
+          })),
+          total: order.totalamount,
+        }));
+        setOrders(formattedOrders);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        setError('Failed to load orders. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [user]);
 
   const getStatusColor = (status: Order['status']) => {
     const colors = {
-      pending: 'var(--color-warning)',
       processing: 'var(--color-info)',
-      shipped: 'var(--color-primary)',
+      'in-transit': 'var(--color-primary)',
       delivered: 'var(--color-success)',
-      cancelled: 'var(--color-error)'
     };
     return colors[status];
   };
 
-  const handleRefund = (orderId: string) => {
+  const handleRefund = (orderId: number) => {
     navigate(`/refund/${orderId}`);
   };
 
@@ -60,6 +84,14 @@ const OrdersPage: React.FC = () => {
     const daysSinceOrder = (new Date().getTime() - new Date(order.date).getTime()) / (24 * 60 * 60 * 1000);
     return order.status === 'delivered' && daysSinceOrder <= 30;
   };
+
+  if (loading) {
+    return <div>Loading your orders...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   return (
     <>
@@ -89,7 +121,7 @@ const OrdersPage: React.FC = () => {
                 <div className="order-items">
                   {order.items.map((item) => (
                     <div key={item.id} className="order-item">
-                      <img src={item.imageUrl} alt={item.name} className="item-image" />
+                      <img src={item.image} alt={item.name} className="item-image" />
                       <div className="item-details">
                         <h4>{item.name}</h4>
                         <p>Quantity: {item.quantity}</p>
