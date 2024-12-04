@@ -12,6 +12,7 @@ class OrderItemRequest(BaseModel):
     productid: int
     quantity: int
     price: float
+    productname: str
 
 class OrderRequest(BaseModel):
     userid: int
@@ -48,7 +49,11 @@ async def create_order_with_invoice(order_data: OrderRequest):
         invoice_number = f"INV-{orderid}"
         invoice_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         items = [
-            {"name": f"Product {item.productid}", "quantity": item.quantity, "price": item.price}
+            {
+                "name": item.productname,  # Use the actual product name here
+                "quantity": item.quantity,
+                "price": item.price
+            }
             for item in order_data.items
         ]
         invoice_html = invoice_service._create_invoice_html(
@@ -58,6 +63,7 @@ async def create_order_with_invoice(order_data: OrderRequest):
             items=items,
             total_amount=order_data.totalamount,
         )
+
 
         # Step 4: Generate the invoice PDF
         invoice_file_path = invoice_service.generate_invoice(
