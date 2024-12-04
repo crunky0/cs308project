@@ -96,8 +96,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
               <span>${price.toFixed(2)}</span>
             )}
           </div>
-          <button className="add-to-cart-btn" onClick={handleAddToCart}>
-            Add to Cart
+          <button 
+            className={`add-to-cart-btn ${stock === 0 ? 'disabled' : ''}`} 
+            onClick={handleAddToCart} 
+            disabled={stock === 0}
+          >
+            {stock === 0 ? 'Out of Stock' : 'Add to Cart'}
           </button>
         </div>
       </div>
