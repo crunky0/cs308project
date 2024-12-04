@@ -128,3 +128,24 @@ async def get_cart(userid: int):
         "cart": cart_details,
         "total_cart_price": total_cart_price
     }
+
+@router.delete("/cart/empty")
+async def empty_cart(userid: int):
+    # Fetch all items in the cart for the user
+    cart_query = "SELECT productid, quantity FROM cart WHERE userid = :userid"
+    cart_items = await database.fetch_all(query=cart_query, values={"userid": userid})
+
+    if not cart_items:
+        raise HTTPException(status_code=404, detail="Cart is already empty or user does not exist")
+
+    # Delete all items from the user's cart
+    delete_query = "DELETE FROM cart WHERE userid = :userid"
+    await database.execute(query=delete_query, values={"userid": userid})
+
+    # Prepare the response with productid and quantity of deleted items
+    deleted_items = [{"productid": item["productid"], "quantity": item["quantity"]} for item in cart_items]
+
+    return {
+        "message": "Cart has been emptied successfully.",
+        "deleted_items": deleted_items
+    }

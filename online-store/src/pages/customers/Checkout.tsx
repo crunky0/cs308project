@@ -35,7 +35,7 @@ const Checkout: React.FC = () => {
   });
   const [isProcessing, setIsProcessing] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [orderNumber] = useState(Math.floor(100000 + Math.random() * 900000));
+  const [orderNumber, setOrderNumber] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchShippingInfo = async () => {
@@ -89,15 +89,60 @@ const Checkout: React.FC = () => {
     }));
   };
 
-  const handlePaymentSubmit = (e: React.FormEvent) => {
+  const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
-    setCurrentStep(3);
 
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      if (!user || !shippingInfo) {
+        throw new Error('User or shipping information is missing');
+      }
+
+      // Prepare order data
+      const orderData = {
+        userid: user.userid,
+        totalamount: total,
+        items: cart.map(item => ({
+          productid: item.productid,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      };
+      console.log('Order Data:', orderData);
+
+      // Send order creation request
+      const orderResponse = await fetch('http://localhost:8000/create_order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      });
+
+      if (!orderResponse.ok) {
+        const errorData = await orderResponse.json();
+        throw new Error(errorData.detail || 'Failed to create order');
+      }
+
+      const orderResult = await orderResponse.json();
+      setOrderNumber(orderResult.orderid);
+
+      // Empty the cart
+      const cartResponse = await fetch(`http://localhost:8000/cart/empty?userid=${user.userid}`, {
+        method: 'DELETE'
+      });
+
+      if (!cartResponse.ok) {
+        const errorData = await cartResponse.json();
+        console.warn('Failed to empty cart:', errorData.detail);
+      }
+
+      clearCart();
+      setCurrentStep(3);
       setShowConfirmationModal(true);
-    }, 2000);
+    } catch (error) {
+      console.error('Error processing payment:', error);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleContinueShopping = () => {
@@ -197,8 +242,8 @@ const Checkout: React.FC = () => {
                     </div>
                   </div>
 
-                  <button type="submit" className="continue-btn">
-                    Pay ${total.toFixed(2)}
+                  <button type="submit" className="continue-btn" disabled={isProcessing}>
+                    {isProcessing ? 'Processing...' : `Pay $${total.toFixed(2)}`}
                   </button>
                 </form>
               </div>
@@ -218,7 +263,7 @@ const Checkout: React.FC = () => {
                     <h2>Order Confirmed!</h2>
                     <p>Your order has been successfully placed.</p>
                     <p>Order #{orderNumber}</p>
-                    <button className="continue-btn" onClick={() => navigate('/')}>
+                    <button className="continue-btn" onClick={handleContinueShopping}>
                       Continue Shopping
                     </button>
                   </div>
@@ -231,7 +276,7 @@ const Checkout: React.FC = () => {
             <h2>Order Summary</h2>
             <div className="summary-items">
               {cart.map((item: CartItem) => (
-                <div key={`${item.productid}`} className="summary-item">
+                <div key={`${item.productid}}`} className="summary-item">
                   <img src={item.image} alt={item.productname} />
                   <div className="item-details">
                     <h3>{item.productname}</h3>
