@@ -13,6 +13,7 @@ interface Product {
   discountPrice?: number;
   image: string;
   averageRating?: number; // Average rating for display
+  stock: number;
 }
 
 interface Category {
@@ -42,17 +43,18 @@ const Products = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<string>('popular'); // Default sort
   const [filters, setFilters] = useState<{ [key: string]: string | number | boolean }>({});
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
+  const [searchMode, setSearchMode] = useState<'name' | 'description'>('name');
 
   
   const fetchProductsByCategory = async (categoryId: number) => {
     setLoading(true);
     try {
-      const endpoint = categoryId === 0
-        ? 'http://localhost:8000/products/'
-        : `http://localhost:8000/products/category/${categoryId}/`;
+      let endpoint = 'http://localhost:8000/products/';
+      if (searchQuery) {
+        endpoint = `http://localhost:8000/products/search?query=${encodeURIComponent(searchQuery)}`;
+      } else if (categoryId !== 0) {
+        endpoint = `http://localhost:8000/products/category/${categoryId}/`;
+      }
   
       const response = await fetch(endpoint);
       if (!response.ok) {
@@ -80,16 +82,19 @@ const Products = () => {
           }
         })
       );
+
+
+      
   
       // Sort products
       if (sortBy === 'priceLowHigh') {
         productsWithRatings.sort((a, b) => a.price - b.price);
       } else if (sortBy === 'priceHighLow') {
         productsWithRatings.sort((a, b) => b.price - a.price);
-      } else if (sortBy === 'rating') {
+      } else if (sortBy === 'ratingHighToLow') {
         productsWithRatings.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
-      } else if (sortBy === 'popular') {
-        // Placeholder for popularity sorting logic if applicable
+      } else if (sortBy === 'ratingLowToHigh') {
+        productsWithRatings.sort((a, b) => (a.averageRating || 0) - (b.averageRating || 0));
       }
   
       setFilteredProducts(productsWithRatings);
@@ -117,6 +122,52 @@ const Products = () => {
       setTimeout(checkScroll, 100);
     }
   };
+
+  const fetchProductsBySearch = async (query: string) => {
+    setLoading(true);
+    try {
+      const nameEndpoint = `http://localhost:8000/products/search/name/?productName=${encodeURIComponent(query)}`;
+      const descriptionEndpoint = `http://localhost:8000/products/search/description/?description=${encodeURIComponent(query)}`;
+  
+      // İki endpoint'i paralel olarak çağır
+      const [nameResponse, descriptionResponse] = await Promise.all([
+        fetch(nameEndpoint),
+        fetch(descriptionEndpoint),
+      ]);
+  
+      if (!nameResponse.ok || !descriptionResponse.ok) {
+        throw new Error('Failed to fetch search results');
+      }
+  
+      const nameResults = await nameResponse.json();
+      const descriptionResults = await descriptionResponse.json();
+  
+      // İsim ve açıklama sonuçlarını birleştir, tekrarlayanları kaldır
+      const combinedResults = [
+        ...new Map(
+          [...nameResults, ...descriptionResults].map((item) => [item.productid, item])
+        ).values(),
+      ];
+  
+      // Sıralama uygula
+      if (sortBy === 'priceLowHigh') {
+        combinedResults.sort((a, b) => a.price - b.price);
+      } else if (sortBy === 'priceHighLow') {
+        combinedResults.sort((a, b) => b.price - a.price);
+      } else if (sortBy === 'ratingHighToLow') {
+        combinedResults.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
+      } else if (sortBy === 'ratingLowToHigh') {
+        combinedResults.sort((a, b) => (a.averageRating || 0) - (b.averageRating || 0));
+      }
+  
+      setFilteredProducts(combinedResults);
+    } catch (error) {
+      console.error('Error fetching search results:', error);
+      setFilteredProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const categoriesRef = useRef<HTMLDivElement>(null);
   const checkScroll = useCallback(() => {
@@ -132,11 +183,26 @@ const Products = () => {
     fetchProductsByCategory(activeCategory);
   }, [activeCategory, sortBy, filters]);
   
+  useEffect(() => {
+    if (searchQuery.trim() !== '') {
+      fetchProductsBySearch(searchQuery);
+    } else {
+      fetchProductsByCategory(activeCategory);
+    }
+  }, [searchQuery, sortBy]);
 
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      fetchProductsByCategory(activeCategory);
+    }
+  }, [activeCategory]);
+  
+  
 
   return (
     <div className="products-page">
-      <Navbar onSearch={(query: string) => setSearchQuery(query)} />
+      <Navbar onSearch={(query) => setSearchQuery(query)} />
+
       <main className="main-content">
         {/* Categories Section */}
         <div className="categories-section">
@@ -188,11 +254,12 @@ const Products = () => {
             className="sort-select"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-          >
-            <option value="popular">Popular</option>
+
+          > <option>Default</option>
+            <option value="ratingLowToHigh">Rating: Low to High</option>
             <option value="priceLowHigh">Price: Low to High</option>
             <option value="priceHighLow">Price: High to Low</option>
-            <option value="rating">Rating</option>
+            <option value="ratingHighToLow">Rating: High to Low</option>
           </select>
         </div>
       </div>

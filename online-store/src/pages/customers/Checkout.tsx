@@ -106,7 +106,8 @@ const Checkout: React.FC = () => {
         items: cart.map(item => ({
           productid: item.productid,
           quantity: item.quantity,
-          price: item.price
+          price: item.price,
+          productname : item.productname
         }))
       };
   
