@@ -1,3 +1,3 @@
-INSERT INTO ratings (userID, productID, review, comment, approved)
-VALUES (:userID, :productID, :review, :comment, :approved)
-RETURNING reviewID AS "reviewID", userID AS "userID", productID AS "productID", review, comment, approved;
+INSERT INTO ratings (userid, productid, rating, comment, approved)
+VALUES (:userid, :productid, :rating, :comment, :approved)
+RETURNING reviewid, userid, productid, rating, comment, approved;
