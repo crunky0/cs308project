@@ -10,7 +10,8 @@ interface ProductCardProps {
   price: number;
   discountedPrice?: number; // Optional field
   image: string;
-  description?: string; // Optional field
+  description?: string;
+  stock: number; // Optional field
   averageRating?: number; // Optional field
   onClick?: () => void; // Optional field for custom click handler
 }
@@ -22,6 +23,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   discountedPrice,
   image,
   description,
+  stock,
   averageRating,
   onClick,
 }) => {
@@ -46,6 +48,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
       <div className="product-info">
         <h3>{name}</h3>
         {description && <p className="description">{description}</p>}
+        {stock !== undefined && stock !== null && (
+            <p className="stock">Stock: {stock}</p>
+        )}
         {averageRating !== undefined && averageRating !== null ? (
   <div className="rating">
     <span className="stars">

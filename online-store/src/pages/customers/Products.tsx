@@ -13,6 +13,7 @@ interface Product {
   discountPrice?: number;
   image: string;
   averageRating?: number; // Average rating for display
+  stock: number;
 }
 
 interface Category {
