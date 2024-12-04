@@ -99,7 +99,7 @@ async def remove_cart_item(userid: int, productid: int):
 @router.get("/cart")
 async def get_cart(userid: int):
     cart_query = """
-    SELECT c.productid, c.quantity, p.productname, p.stock, p.price
+    SELECT c.productid, c.quantity, p.productname, p.stock, p.price, p.image
     FROM cart c
     JOIN products p ON c.productid = p.productid
     WHERE c.userid = :userid
@@ -116,7 +116,8 @@ async def get_cart(userid: int):
             "quantity": item["quantity"],
             "stock": item["stock"],
             "price": item["price"],
-            "total_price": item["quantity"] * item["price"]
+            "total_price": item["quantity"] * item["price"],
+            "image": item["image"]
         }
         for item in items
     ]

@@ -1,19 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../../context/CartContext';
 import Navbar from '../../components/customer/layout/Navbar';
 import './Checkout.css';
 import { CartItem, CartContextType } from '../../context/CartContext';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext'; // Import AuthContext for user details
 
 interface ShippingInfo {
-  firstName: string;
-  lastName: string;
+  name: string;
+  surname: string;
   email: string;
-  phone: string;
   address: string;
-  city: string;
-  state: string;
-  zipCode: string;
+  taxID: string;
 }
 
 interface PaymentInfo {
@@ -25,18 +23,10 @@ interface PaymentInfo {
 
 const Checkout: React.FC = () => {
   const { cart, total, clearCart } = useCart() as CartContextType;
+  const { user } = useAuth(); // Get logged-in user info
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState<number>(1);
-  const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: ''
-  });
+  const [currentStep, setCurrentStep] = useState<number>(2); // Start from payment step
+  const [shippingInfo, setShippingInfo] = useState<ShippingInfo | null>(null);
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>({
     cardNumber: '',
     cardHolder: '',
@@ -47,28 +37,48 @@ const Checkout: React.FC = () => {
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [orderNumber] = useState(Math.floor(100000 + Math.random() * 900000));
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setShippingInfo(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  useEffect(() => {
+    const fetchShippingInfo = async () => {
+      try {
+        if (!user) {
+          throw new Error('User not logged in');
+        }
+
+        const response = await fetch(`http://localhost:8000/users/${user.userid}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch user information');
+        }
+
+        const data = await response.json();
+        setShippingInfo({
+          name: data.name,
+          surname: data.surname,
+          email: data.email,
+          address: data.homeAddress,
+          taxID: data.taxID
+        });
+      } catch (error) {
+        console.error('Error fetching shipping info:', error);
+      }
+    };
+
+    fetchShippingInfo();
+  }, [user]);
 
   const handlePaymentInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     let formattedValue = value;
-    
+
     if (name === 'cardNumber') {
       formattedValue = value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
       if (formattedValue.length > 19) return;
     }
-    
+
     if (name === 'expiryDate') {
       formattedValue = value.replace(/\D/g, '').replace(/(\d{2})(\d{0,2})/, '$1/$2');
       if (formattedValue.length > 5) return;
     }
-    
+
     if (name === 'cvv') {
       if (value.length > 3) return;
     }
@@ -79,16 +89,11 @@ const Checkout: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentStep(2);
-  };
-
   const handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
     setCurrentStep(3);
-    
+
     setTimeout(() => {
       setIsProcessing(false);
       setShowConfirmationModal(true);
@@ -100,133 +105,43 @@ const Checkout: React.FC = () => {
     navigate('/');
   };
 
+  if (!shippingInfo) {
+    return <div>Loading shipping information...</div>;
+  }
+
   return (
     <div className="checkout-page">
       <Navbar onSearch={() => {}} />
       <div className="checkout-container">
         <div className="checkout-steps">
-          <div className={`step ${currentStep >= 1 ? 'active' : ''}`}>
-            1. Shipping
-          </div>
           <div className={`step ${currentStep >= 2 ? 'active' : ''}`}>
-            2. Payment
+            1. Payment
           </div>
           <div className={`step ${currentStep >= 3 ? 'active' : ''}`}>
-            3. Confirmation
+            2. Confirmation
           </div>
         </div>
 
         <div className="checkout-content">
           <div className="checkout-form">
-            {currentStep === 1 && (
-              <form onSubmit={handleSubmit}>
-                <h2>Shipping Information</h2>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="firstName">First Name</label>
-                    <input
-                      type="text"
-                      id="firstName"
-                      name="firstName"
-                      value={shippingInfo.firstName}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="lastName">Last Name</label>
-                    <input
-                      type="text"
-                      id="lastName"
-                      name="lastName"
-                      value={shippingInfo.lastName}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="email">Email</label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={shippingInfo.email}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="phone">Phone</label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      value={shippingInfo.phone}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="address">Address</label>
-                  <input
-                    type="text"
-                    id="address"
-                    name="address"
-                    value={shippingInfo.address}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="city">City</label>
-                    <input
-                      type="text"
-                      id="city"
-                      name="city"
-                      value={shippingInfo.city}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="state">State</label>
-                    <input
-                      type="text"
-                      id="state"
-                      name="state"
-                      value={shippingInfo.state}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="zipCode">ZIP Code</label>
-                    <input
-                      type="text"
-                      id="zipCode"
-                      name="zipCode"
-                      value={shippingInfo.zipCode}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <button type="submit" className="continue-btn">
-                  Continue to Payment
-                </button>
-              </form>
-            )}
-
             {currentStep === 2 && (
               <div className="payment-section">
+                <h2>Shipping Information</h2>
+                <div className="shipping-info">
+                  <p>
+                    <strong>Name:</strong> {shippingInfo.name} {shippingInfo.surname}
+                  </p>
+                  <p>
+                    <strong>Email:</strong> {shippingInfo.email}
+                  </p>
+                  <p>
+                    <strong>Address:</strong> {shippingInfo.address}
+                  </p>
+                  <p>
+                    <strong>Tax ID:</strong> {shippingInfo.taxID}
+                  </p>
+                </div>
+
                 <form onSubmit={handlePaymentSubmit}>
                   <h2>Payment Information</h2>
                   <div className="form-group">
@@ -302,11 +217,8 @@ const Checkout: React.FC = () => {
                     <div className="success-icon">✓</div>
                     <h2>Order Confirmed!</h2>
                     <p>Your order has been successfully placed.</p>
-                    <p>Order #{Math.floor(100000 + Math.random() * 900000)}</p>
-                    <button 
-                      className="continue-btn"
-                      onClick={() => navigate('/')}
-                    >
+                    <p>Order #{orderNumber}</p>
+                    <button className="continue-btn" onClick={() => navigate('/')}>
                       Continue Shopping
                     </button>
                   </div>
@@ -319,11 +231,10 @@ const Checkout: React.FC = () => {
             <h2>Order Summary</h2>
             <div className="summary-items">
               {cart.map((item: CartItem) => (
-                <div key={`${item.productid}-${item.size}`} className="summary-item">
+                <div key={`${item.productid}`} className="summary-item">
                   <img src={item.image} alt={item.productname} />
                   <div className="item-details">
                     <h3>{item.productname}</h3>
-                    <p>Size: {item.size}</p>
                     <p>Quantity: {item.quantity}</p>
                     <p>${item.price.toFixed(2)}</p>
                   </div>
@@ -347,35 +258,8 @@ const Checkout: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {showConfirmationModal && (
-        <div className="modal-overlay">
-          <div className="confirmation-modal">
-            <div className="success-icon">✓</div>
-            <h2>Payment Successful!</h2>
-            <p>Thank you for your purchase</p>
-            <p>Order #{orderNumber}</p>
-            
-            <div className="order-details">
-              <p>Amount Paid: ${total.toFixed(2)}</p>
-              <p>Shipping to: {shippingInfo.firstName} {shippingInfo.lastName}</p>
-              <p>{shippingInfo.address}</p>
-              <p>{shippingInfo.city}, {shippingInfo.state} {shippingInfo.zipCode}</p>
-            </div>
-
-            <div className="buttons">
-              <button 
-                className="continue-btn"
-                onClick={handleContinueShopping}
-              >
-                Continue Shopping
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
-export default Checkout; 
+export default Checkout;

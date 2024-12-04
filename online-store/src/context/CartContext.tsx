@@ -7,6 +7,7 @@ export interface CartItem {
   stock: number;
   quantity: number;
   total_price: number;
+  image: string;
 }
 
 export interface CartContextType {
