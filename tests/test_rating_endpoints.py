@@ -11,19 +11,19 @@ client = TestClient(app)
 def test_create_review(mock_fetch_one):
     # Mock response from the database
     mock_fetch_one.return_value = {
-        "reviewID": 1,
-        "userID": 123,
-        "productID": 456,
-        "review": 4.5,
+        "reviewid": 1,
+        "userid": 123,
+        "productid": 456,
+        "rating": 4.5,
         "comment": "Great product!",
         "approved": False
     }
 
     # Mock input data
     review_data = {
-        "userID": 123,
-        "productID": 456,
-        "review": 4.5,
+        "userid": 123,
+        "productid": 456,
+        "rating": 4.5,
         "comment": "Great product!"
     }
 
@@ -32,10 +32,10 @@ def test_create_review(mock_fetch_one):
     # Assertions
     assert response.status_code == 200
     assert response.json() == {
-        "reviewID": 1,
-        "userID": 123,
-        "productID": 456,
-        "review": 4.5,
+        "reviewid": 1,
+        "userid": 123,
+        "productid": 456,
+        "rating": 4.5,
         "comment": "Great product!",
         "approved": False
     }
@@ -46,18 +46,18 @@ def test_get_reviews_for_product(mock_fetch_all):
     # Mock response from the database
     mock_fetch_all.return_value = [
         {
-            "reviewID": 1,
-            "userID": 123,
-            "productID": 456,
-            "review": 4.5,
+            "reviewid": 1,
+            "userid": 123,
+            "productid": 456,
+            "rating": 4.5,
             "comment": "Great product!",
             "approved": True
         },
         {
-            "reviewID": 2,
-            "userID": 124,
-            "productID": 456,
-            "review": 3.0,
+            "reviewid": 2,
+            "userid": 124,
+            "productid": 456,
+            "rating": 3.0,
             "comment": "Average product.",
             "approved": True
         }
@@ -69,18 +69,18 @@ def test_get_reviews_for_product(mock_fetch_all):
     assert response.status_code == 200
     assert response.json() == [
         {
-            "reviewID": 1,
-            "userID": 123,
-            "productID": 456,
-            "review": 4.5,
+            "reviewid": 1,
+            "userid": 123,
+            "productid": 456,
+            "rating": 4.5,
             "comment": "Great product!",
             "approved": True
         },
         {
-            "reviewID": 2,
-            "userID": 124,
-            "productID": 456,
-            "review": 3.0,
+            "reviewid": 2,
+            "userid": 124,
+            "productid": 456,
+            "rating": 3.0,
             "comment": "Average product.",
             "approved": True
         }
@@ -91,10 +91,10 @@ def test_get_reviews_for_product(mock_fetch_all):
 def test_approve_review(mock_fetch_one):
     # Mock response from the database
     mock_fetch_one.return_value = {
-        "reviewID": 1,
-        "userID": 123,
-        "productID": 456,
-        "review": 4.5,
+        "reviewid": 1,
+        "userid": 123,
+        "productid": 456,
+        "rating": 4.5,
         "comment": "Great product!",
         "approved": True
     }
@@ -104,10 +104,10 @@ def test_approve_review(mock_fetch_one):
     # Assertions
     assert response.status_code == 200
     assert response.json() == {
-        "reviewID": 1,
-        "userID": 123,
-        "productID": 456,
-        "review": 4.5,
+        "reviewid": 1,
+        "userid": 123,
+        "productid": 456,
+        "rating": 4.5,
         "comment": "Great product!",
         "approved": True
     }
@@ -124,3 +124,26 @@ def test_approve_review_not_found(mock_fetch_one):
     assert response.status_code == 404
     assert response.json() == {"detail": "Review not found or already approved"}
 
+# Test for average rating
+@patch("rating_endpoints.database.fetch_one", new_callable=AsyncMock)
+def test_get_average_rating(mock_fetch_one):
+    # Mock response from the database
+    mock_fetch_one.return_value = {"average_rating": 4.2}
+
+    response = client.get("/products/456/average-rating/")
+
+    # Assertions
+    assert response.status_code == 200
+    assert response.json() == 4.2
+
+# Test for average rating with no data
+@patch("rating_endpoints.database.fetch_one", new_callable=AsyncMock)
+def test_get_average_rating_no_data(mock_fetch_one):
+    # Mock response from the database (no ratings found)
+    mock_fetch_one.return_value = {"average_rating": None}
+
+    response = client.get("/products/999/average-rating/")
+
+    # Assertions
+    assert response.status_code == 404
+    assert response.json() == {"detail": "No ratings found for this product"}
