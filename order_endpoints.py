@@ -3,6 +3,7 @@ from typing import List
 from pydantic import BaseModel
 from db import database  # Import the Database instance
 from order_service import OrderService
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 # Pydantic Models for request validation
 class OrderItemRequest(BaseModel):
@@ -75,5 +76,32 @@ async def get_orders_for_user(userid: int):
         if not orders:
             raise HTTPException(status_code=404, detail="No orders found for the user")
         return orders
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Initialize Scheduler
+scheduler = AsyncIOScheduler()
+
+# Create an instance of OrderService
+order_service = OrderService(database)
+
+@scheduler.scheduled_job("interval", seconds=10)
+async def update_order_status_task():
+    """
+    Scheduled task to update order statuses every 10 seconds.
+    """
+    await order_service.update_order_statuses()
+
+# Start the scheduler
+scheduler.start()
+
+@router.post("/update_statuses")
+async def update_statuses():
+    """
+    Manually trigger the status update for all orders.
+    """
+    try:
+        await order_service.update_order_statuses()
+        return {"message": "Order statuses updated successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

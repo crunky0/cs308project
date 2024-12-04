@@ -27,44 +27,53 @@ const OrdersPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        if (!user) {
-          throw new Error('User not logged in');
-        }
-
-        const response = await fetch(`http://localhost:8000/orders/${user.userid}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch orders');
-        }
-
-        const data = await response.json();
-        const todayDate = new Date().toLocaleDateString();
-
-        const formattedOrders = data.map((order: any) => ({
-          id: order.orderid,
-          date: todayDate, // Adjust if date format differs
-          status: order.status,
-          items: order.items.map((item: any) => ({
-            id: item.productid,
-            name: item.productname,
-            quantity: item.quantity,
-            price: item.price,
-            image: item.image, // Backend provides 'image' field
-          })),
-          total: order.totalamount,
-        }));
-        setOrders(formattedOrders);
-      } catch (error) {
-        console.error('Error fetching orders:', error);
-        setError('Failed to load orders. Please try again later.');
-      } finally {
-        setLoading(false);
+  const fetchOrders = async () => {
+    try {
+      if (!user) {
+        throw new Error('User not logged in');
       }
-    };
 
+      const response = await fetch(`http://localhost:8000/orders/${user.userid}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch orders');
+      }
+
+      const data = await response.json();
+      const todayDate = new Date().toLocaleDateString();
+
+      const formattedOrders = data.map((order: any) => ({
+        id: order.orderid,
+        date: todayDate, // Adjust if date format differs
+        status: order.status,
+        items: order.items.map((item: any) => ({
+          id: item.productid,
+          name: item.productname,
+          quantity: item.quantity,
+          price: item.price,
+          image: item.image, // Backend provides 'image' field
+        })),
+        total: order.totalamount,
+      }));
+      setOrders(formattedOrders);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      setError('Failed to load orders. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch orders once on component mount
+  useEffect(() => {
     fetchOrders();
+
+    // Poll for updates every 10 seconds
+    const interval = setInterval(() => {
+      fetchOrders();
+    }, 10000); // 10 seconds
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(interval);
   }, [user]);
 
   const getStatusColor = (status: Order['status']) => {

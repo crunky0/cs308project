@@ -2,6 +2,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from databases import Database
 from models import Order, OrderItem, Product
 from typing import Dict
+from datetime import datetime, timedelta
 
 class OrderService:
     def __init__(self, db: Database):
@@ -93,3 +94,41 @@ class OrderService:
             return list(orders.values())
         except SQLAlchemyError as e:
             raise Exception(f"Database error while fetching orders: {str(e)}")
+    async def update_order_statuses(self):
+        """
+        Update the status of orders based on the time elapsed since the order date.
+        """
+        async with self.db.transaction():  # Use self.db instead of self.database
+            # Select orders that are not yet delivered
+            query = """
+            SELECT orderid, status, orderdate
+            FROM orders
+            WHERE status != 'delivered'
+            """
+            orders = await self.db.fetch_all(query)  # Use self.db here as well
+
+            for order in orders:
+                order_id = order["orderid"]
+                status = order["status"]
+                order_date = order["orderdate"]
+
+                time_elapsed = datetime.now() - order_date
+
+                # Determine the next status based on time elapsed
+                if status == "processing" and time_elapsed > timedelta(seconds=10):
+                    new_status = "in-transit"
+                elif status == "in-transit" and time_elapsed > timedelta(seconds=20):
+                    new_status = "delivered"
+                else:
+                    continue  # Skip if no update is needed
+
+                # Update the order status in the database
+                update_query = """
+                UPDATE orders
+                SET status = :new_status
+                WHERE orderid = :order_id
+                """
+                await self.db.execute(update_query, {
+                    "new_status": new_status,
+                    "order_id": order_id
+                })
