@@ -163,7 +163,7 @@ const ProductDetails = () => {
           <div>Model: {product.productmodel}</div>
           <div>Warranty: {product.warranty}</div>
           <div>Stock: {product.stock}</div>
-          <button onClick={handleAddToCart} disabled={product.stock <= 0}>
+          <button className="add-to-cart-btn" onClick={handleAddToCart} disabled={product.stock <= 0}>
             Add to Cart
           </button>
         </div>
