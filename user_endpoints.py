@@ -93,3 +93,26 @@ async def login(user: UserLogin):
             "email": db_user["username"]
         }
     }
+
+# API endpoint to get user info by userid
+@router.get("/users/{userid}")
+async def get_user_info(userid: int):
+    # Load the SQL query to fetch user information by userid
+    sql_query = load_sql_file('sql/get_user_info_by_userid.sql')
+
+    # Fetch the user information
+    user_info = await database.fetch_one(query=sql_query, values={"userid": userid})
+
+    if not user_info:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Return the user information
+    return {
+        "userid": user_info["userid"],
+        "username": user_info["username"],
+        "name": user_info["name"],
+        "surname": user_info["surname"],
+        "email": user_info["email"],
+        "taxID": user_info["taxid"],
+        "homeAddress": user_info["homeaddress"]
+    }

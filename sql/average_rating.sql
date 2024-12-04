@@ -1,3 +1,3 @@
-SELECT AVG(review) AS average_rating
+SELECT AVG(rating) AS average_rating
 FROM ratings
-WHERE productID = :productID;
+WHERE productid = :productid;

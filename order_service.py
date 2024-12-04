@@ -8,17 +8,7 @@ class OrderService:
         self.db = db
 
     async def create_order(self, order_data: Dict) -> Dict:
-        """
-        Creates an order, adds order items, and updates stock.
-
-        Args:
-            order_data (Dict): Data for creating the order, including user ID, total amount, and items.
-
-        Returns:
-            Dict: Confirmation message with the created order ID.
-        """
         try:
-            # Use the transaction() method for database transaction management
             async with self.db.transaction():
                 # Insert the order
                 query = """
@@ -26,38 +16,24 @@ class OrderService:
                     VALUES (:userid, :totalamount)
                     RETURNING orderid
                 """
-                values = {
-                    "userid": order_data["userid"],
-                    "totalamount": order_data["totalamount"]
-                }
+                values = {"userid": order_data["userid"], "totalamount": order_data["totalamount"]}
                 result = await self.db.fetch_one(query, values)
+
+                if not result or "orderid" not in result:
+                    print(f"DEBUG: fetch_one returned {result}")
+                    raise KeyError("'orderid' key missing from result")
                 orderid = result["orderid"]
 
-                # Process order items and update stock
+                # Process items
                 for item in order_data["items"]:
-                    # Check stock
                     stock_query = "SELECT stock FROM products WHERE productid = :productid"
                     stock_result = await self.db.fetch_one(stock_query, {"productid": item["productid"]})
                     if not stock_result or stock_result["stock"] < item["quantity"]:
                         raise ValueError(f"Insufficient stock for product ID {item['productid']}")
 
-                    # Update stock
-                    update_stock_query = """
-                        UPDATE products
-                        SET stock = stock - :quantity
-                        WHERE productid = :productid
-                    """
-                    await self.db.execute(update_stock_query, {
-                        "quantity": item["quantity"],
-                        "productid": item["productid"]
-                    })
+                    await self.db.execute("UPDATE products SET stock = stock - :quantity WHERE productid = :productid", {"quantity": item["quantity"], "productid": item["productid"]})
 
-                    # Insert order item
-                    insert_item_query = """
-                        INSERT INTO order_items (orderid, productid, quantity, price)
-                        VALUES (:orderid, :productid, :quantity, :price)
-                    """
-                    await self.db.execute(insert_item_query, {
+                    await self.db.execute("INSERT INTO order_items (orderid, productid, quantity, price) VALUES (:orderid, :productid, :quantity, :price)", {
                         "orderid": orderid,
                         "productid": item["productid"],
                         "quantity": item["quantity"],
@@ -65,8 +41,55 @@ class OrderService:
                     })
 
                 return {"orderid": orderid, "message": "Order created successfully"}
+        except Exception as e:
+            raise Exception(f"Order creation error: {str(e)}")
+    async def get_orders_for_user(self, userid: int):
+        """
+        Fetch all orders for a specific user along with product details, including images and order status.
 
-        except ValueError as ve:
-            raise ValueError(f"Stock issue: {str(ve)}")
+        Args:
+            userid (int): The user ID to fetch orders for.
+
+        Returns:
+            List[dict]: A list of orders with product details.
+        """
+        try:
+            query = """
+                SELECT
+                    o.orderid,
+                    o.userid,
+                    o.totalamount,
+                    o.status,
+                    oi.productid,
+                    p.productname,
+                    p.image,
+                    oi.quantity,
+                    oi.price
+                FROM orders o
+                JOIN order_items oi ON o.orderid = oi.orderid
+                JOIN products p ON oi.productid = p.productid
+                WHERE o.userid = :userid
+            """
+            rows = await self.db.fetch_all(query, {"userid": userid})
+            
+            orders = {}
+            for row in rows:
+                orderid = row["orderid"]
+                if orderid not in orders:
+                    orders[orderid] = {
+                        "orderid": orderid,
+                        "userid": row["userid"],
+                        "totalamount": row["totalamount"],
+                        "status": row["status"],
+                        "items": []
+                    }
+                orders[orderid]["items"].append({
+                    "productid": row["productid"],
+                    "productname": row["productname"],
+                    "image": row["image"],
+                    "quantity": row["quantity"],
+                    "price": row["price"]
+                })
+            return list(orders.values())
         except SQLAlchemyError as e:
-            raise Exception(f"Database error: {str(e)}")
+            raise Exception(f"Database error while fetching orders: {str(e)}")

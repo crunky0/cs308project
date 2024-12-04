@@ -12,19 +12,43 @@ logger = logging.getLogger(__name__)
 class InvoiceService:
     def __init__(self, output_dir: str = "invoices"):
         """
-        Initialize the InvoiceService with an output directory.
+        Initialize the InvoiceService with an output directory and wkhtmltopdf configuration.
         """
         self.output_dir = output_dir
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
         logger.info(f"Invoice output directory set to: {self.output_dir}")
-        if platform.system() == "Windows":
-            path_wkhtmltopdf = 'C:\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'
-        else:
-            path_wkhtmltopdf = '/usr/local/bin/wkhtmltopdf'  # Path for macOS/Linux
 
         # Configure wkhtmltopdf path
+        path_wkhtmltopdf = os.getenv("WKHTMLTOPDF_PATH")
+        if not path_wkhtmltopdf:
+            path_wkhtmltopdf = self._find_wkhtmltopdf()
         self.pdfkit_config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+
+        # Verify wkhtmltopdf is valid
+        if not os.path.isfile(path_wkhtmltopdf):
+            raise FileNotFoundError(f"wkhtmltopdf not found at: {path_wkhtmltopdf}")
+
+    def _find_wkhtmltopdf(self) -> str:
+        """
+        Search for wkhtmltopdf in common locations on the system.
+        """
+        common_paths = [
+            "C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe",
+            "C:\\wkhtmltopdf\\bin\\wkhtmltopdf.exe",
+            "D:\\wkhtmltopdf\\bin\\wkhtmltopdf.exe",
+            "/usr/local/bin/wkhtmltopdf",
+            "/usr/bin/wkhtmltopdf",
+        ]
+
+        for path in common_paths:
+            if os.path.isfile(path):
+                logger.info(f"wkhtmltopdf found at: {path}")
+                return path
+
+        raise FileNotFoundError(
+            "wkhtmltopdf executable not found. Please install it or set the path in the WKHTMLTOPDF_PATH environment variable."
+        )
 
     def generate_invoice(self, html_content: str, invoice_number: str) -> str:
         """
@@ -163,3 +187,4 @@ class InvoiceService:
         </html>
         """
         return html_template
+    

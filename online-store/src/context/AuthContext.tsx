@@ -1,5 +1,10 @@
-import React, { createContext, useContext, useState } from 'react';
-import { useCart } from './CartContext';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react';
 
 // Define User and AuthContext types
 interface User {
@@ -27,28 +32,28 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     try {
       const response = await fetch('http://localhost:8000/users/login/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: email, password }),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || 'Failed to login');
       }
-  
+
       const data = await response.json();
       setUser({ userid: data.user.userid, email: data.user.email });
     } catch (error) {
       console.error('Login error:', error);
-      throw new Error();
+      throw error;
     }
-  };  
+  }, []); // Dependencies can be added if needed
 
-  const signup = async (
+  const signup = useCallback(async (
     email: string,
     password: string,
     name: string,
@@ -77,21 +82,29 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
       }
 
       const data = await response.json();
-      console.log("Signup response data:", data); // Debugging line
+      console.log("Signup response data:", data);
 
       setUser({ userid: data.user.userid, email: data.user.email });
     } catch (error: any) {
       console.error("Signup error:", error.message);
-      throw new Error(error.message);
+      throw error;
     }
-  };
+  }, []); // Dependencies can be added if needed
 
-  const logout = () => setUser(null);
+  const logout = useCallback(() => {
+    setUser(null);
+  }, []);
+
+  const authValue = useMemo(() => ({
+    user,
+    isAuthenticated: !!user,
+    login,
+    signup,
+    logout,
+  }), [user, login, signup, logout]);
 
   return (
-    <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, login, signup, logout }}
-    >
+    <AuthContext.Provider value={authValue}>
       {children}
     </AuthContext.Provider>
   );

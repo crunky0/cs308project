@@ -40,23 +40,28 @@ const Products = () => {
   const [showLeftScroll, setShowLeftScroll] = useState(false);
   const [showRightScroll, setShowRightScroll] = useState(true);
   const [loading, setLoading] = useState<boolean>(false);
-  const [sortBy, setSortBy] = useState("popular");
+  const [sortBy, setSortBy] = useState<string>('popular'); // Default sort
+  const [filters, setFilters] = useState<{ [key: string]: string | number | boolean }>({});
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
   
   const fetchProductsByCategory = async (categoryId: number) => {
     setLoading(true);
     try {
       const endpoint = categoryId === 0
-        ? 'http://localhost:8000/products/' // Fetch all products
+        ? 'http://localhost:8000/products/'
         : `http://localhost:8000/products/category/${categoryId}/`;
-
+  
       const response = await fetch(endpoint);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || 'Failed to fetch products');
       }
-
-      const data = await response.json();
-
+  
+      let data = await response.json();
+  
       // Fetch and add ratings to products
       const productsWithRatings = await Promise.all(
         data.map(async (product: Product) => {
@@ -67,7 +72,7 @@ const Products = () => {
             const averageRating = ratingResponse.ok
               ? await ratingResponse.json()
               : null;
-
+  
             return { ...product, averageRating };
           } catch (error) {
             console.error(`Error fetching rating for product ${product.productid}:`, error);
@@ -75,15 +80,28 @@ const Products = () => {
           }
         })
       );
-
+  
+      // Sort products
+      if (sortBy === 'priceLowHigh') {
+        productsWithRatings.sort((a, b) => a.price - b.price);
+      } else if (sortBy === 'priceHighLow') {
+        productsWithRatings.sort((a, b) => b.price - a.price);
+      } else if (sortBy === 'rating') {
+        productsWithRatings.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
+      } else if (sortBy === 'popular') {
+        // Placeholder for popularity sorting logic if applicable
+      }
+  
       setFilteredProducts(productsWithRatings);
     } catch (error) {
-      console.error("Error fetching products:", error);
+      console.error('Error fetching products:', error);
       setFilteredProducts([]);
     } finally {
       setLoading(false);
     }
   };
+  
+  
   const scroll = (direction: 'left' | 'right') => {
     if (categoriesRef.current) {
       const scrollAmount = 300;
@@ -111,9 +129,9 @@ const Products = () => {
 
 
   useEffect(() => {
-    // Fetch products for the active category on mount or when the category changes
     fetchProductsByCategory(activeCategory);
-  }, [activeCategory]);
+  }, [activeCategory, sortBy, filters]);
+  
 
 
   return (
@@ -162,7 +180,22 @@ const Products = () => {
             )}
           </div>
         </div>
-
+        <div className="filters-section">
+        <div className="sort-section">
+          <label htmlFor="sort-select">Sort by:</label>
+          <select
+            id="sort-select"
+            className="sort-select"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="popular">Popular</option>
+            <option value="priceLowHigh">Price: Low to High</option>
+            <option value="priceHighLow">Price: High to Low</option>
+            <option value="rating">Rating</option>
+          </select>
+        </div>
+      </div>
         {/* Products Grid */}
         <div className="products-grid">
           {loading ? (

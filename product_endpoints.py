@@ -2,6 +2,11 @@ from fastapi import APIRouter, HTTPException
 from db import database
 from pydantic import BaseModel
 import os
+from typing import Optional
+
+    
+class DiscountRequest(BaseModel):
+    discountPrice: float
 
 router = APIRouter()
 
@@ -10,6 +15,7 @@ def load_sql_file(filename: str) -> str:
     file_path = os.path.join("sql", filename)
     with open(file_path, "r") as file:
         return file.read()
+
 
 # Pydantic model for adding a product
 class ProductCreate(BaseModel):
@@ -23,7 +29,7 @@ class ProductCreate(BaseModel):
     stock: int
     categoryid: int
     soldamount: int
-    discountprice: float | None = None  # Optional field for discount
+    discountprice: Optional[float]  # Optional field for discount
     image: str
 
 # Get product by ID
@@ -75,7 +81,9 @@ async def remove_product(product_id: int):
 
 # Add a discount to a product
 @router.put("/products/{product_id}/discount/")
-async def add_discount(product_id: int, discountPrice: float):
+async def add_discount(product_id: int, discount: DiscountRequest):
+    discountPrice = discount.discountPrice
+
     if discountPrice <= 0:
         raise HTTPException(status_code=400, detail="Discount price must be greater than 0")
 

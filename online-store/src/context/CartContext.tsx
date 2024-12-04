@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 export interface CartItem {
   productid: number;
@@ -7,6 +7,7 @@ export interface CartItem {
   stock: number;
   quantity: number;
   total_price: number;
+  image: string;
 }
 
 export interface CartContextType {
@@ -27,30 +28,35 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [total, setTotal] = useState<number>(0);
 
   // Helper to fetch product details
-  const fetchProductDetails = async (productid: number) => {
+  const fetchProductDetails = useCallback(async (productId: number) => {
     try {
-      const response = await fetch(`http://localhost:8000/products/${productid}/`);
+      const response = await fetch(`http://localhost:8000/products/${productId}/`);
       if (!response.ok) throw new Error('Product not found');
       return await response.json();
     } catch (error) {
       console.error('Error fetching product details:', error);
       throw error;
     }
-  };
+  }, []);
 
   // Fetch cart (guest or logged-in)
-  const fetchCart = async (userid?: number) => {
+  const fetchCart = useCallback(async (userid?: number) => {
     if (userid) {
       // Fetch logged-in user's cart from server
       try {
         const response = await fetch(`http://localhost:8000/cart?userid=${userid}`);
         if (!response.ok) throw new Error('Failed to fetch cart');
         const data = await response.json();
-        setCartItems(data.cart || []);
+        setCartItems(prev => {
+            if (JSON.stringify(prev) === JSON.stringify(data.cart || [])) {
+                return prev; // Eğer veri değişmediyse state güncellenmesin.
+            }
+            return data.cart || [];
+        });
         setTotal(data.total_cart_price || 0);
-      } catch (error) {
+    } catch (error) {
         console.error('Error fetching cart:', error);
-      }
+    }
     } else {
       // Fetch guest cart from localStorage
       const storedCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
@@ -71,7 +77,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Error building full cart:', error);
       }
     }
-  };
+  }, [fetchProductDetails]); // Include dependencies that could change
+  
 
   // Add to cart
   const addToCart = async (productid: number, quantity = 1, userid?: number) => {

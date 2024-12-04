@@ -99,7 +99,7 @@ async def remove_cart_item(userid: int, productid: int):
 @router.get("/cart")
 async def get_cart(userid: int):
     cart_query = """
-    SELECT c.productid, c.quantity, p.productname, p.stock, p.price
+    SELECT c.productid, c.quantity, p.productname, p.stock, p.price, p.image
     FROM cart c
     JOIN products p ON c.productid = p.productid
     WHERE c.userid = :userid
@@ -116,7 +116,8 @@ async def get_cart(userid: int):
             "quantity": item["quantity"],
             "stock": item["stock"],
             "price": item["price"],
-            "total_price": item["quantity"] * item["price"]
+            "total_price": item["quantity"] * item["price"],
+            "image": item["image"]
         }
         for item in items
     ]
@@ -126,4 +127,25 @@ async def get_cart(userid: int):
     return {
         "cart": cart_details,
         "total_cart_price": total_cart_price
+    }
+
+@router.delete("/cart/empty")
+async def empty_cart(userid: int):
+    # Fetch all items in the cart for the user
+    cart_query = "SELECT productid, quantity FROM cart WHERE userid = :userid"
+    cart_items = await database.fetch_all(query=cart_query, values={"userid": userid})
+
+    if not cart_items:
+        raise HTTPException(status_code=404, detail="Cart is already empty or user does not exist")
+
+    # Delete all items from the user's cart
+    delete_query = "DELETE FROM cart WHERE userid = :userid"
+    await database.execute(query=delete_query, values={"userid": userid})
+
+    # Prepare the response with productid and quantity of deleted items
+    deleted_items = [{"productid": item["productid"], "quantity": item["quantity"]} for item in cart_items]
+
+    return {
+        "message": "Cart has been emptied successfully.",
+        "deleted_items": deleted_items
     }

@@ -1,9 +1,9 @@
 SELECT 
-    reviewID AS "reviewID", 
-    userID AS "userID", 
-    productID AS "productID", 
-    review, 
+    reviewid, 
+    userid, 
+    productid, 
+    rating,
     comment, 
     approved
 FROM ratings
-WHERE productID = :productID AND approved = TRUE;
+WHERE productID = :productid AND approved = TRUE;

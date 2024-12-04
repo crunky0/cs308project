@@ -13,16 +13,16 @@ def load_sql_file(filename: str) -> str:
         return file.read()
 
 class ReviewCreate(BaseModel):
-    userID: int
-    productID: int
-    review: float
+    userid: int
+    productid: int
+    rating: float
     comment: str
 
 class ReviewResponse(BaseModel):
-    reviewID: int
-    userID: int
-    productID: int
-    review: float
+    reviewid: int
+    userid: int
+    productid: int
+    rating: float
     comment: str
     approved: bool
 
@@ -32,9 +32,9 @@ async def create_review(review: ReviewCreate):
     create_review_query = load_sql_file("create_review.sql")
     
     values = {
-        "userID": review.userID,
-        "productID": review.productID,
-        "review": review.review,
+        "userid": review.userid,
+        "productid": review.productid,
+        "rating": review.rating,
         "comment": review.comment,
         "approved": False  # By default, the review is not approved
     }
@@ -46,28 +46,28 @@ async def create_review(review: ReviewCreate):
     return ReviewResponse(**review_record)
 
 # Endpoint to retrieve all reviews for a specific product
-@router.get("/products/{product_id}/reviews/", response_model=List[ReviewResponse])
-async def get_reviews_for_product(product_id: int):
+@router.get("/products/{productid}/reviews/", response_model=List[ReviewResponse])
+async def get_reviews_for_product(productid: int):
     # Load the SQL query from the file
     get_reviews_query = load_sql_file("get_reviews_for_product.sql")
     
-    reviews = await database.fetch_all(query=get_reviews_query, values={"productID": product_id})
+    reviews = await database.fetch_all(query=get_reviews_query, values={"productid": productid})
     return [ReviewResponse(**review) for review in reviews]
 
-@router.put("/reviews/{review_id}/approve/", response_model=ReviewResponse)
-async def approve_review(review_id: int):
+@router.put("/reviews/{reviewid}/approve/", response_model=ReviewResponse)
+async def approve_review(reviewid: int):
     # Load the SQL query from the file
     approve_review_query = load_sql_file("approve_rating.sql")
 
     # Execute the query to approve the rating
-    review_record = await database.fetch_one(query=approve_review_query, values={"reviewID": review_id})
+    review_record = await database.fetch_one(query=approve_review_query, values={"reviewid": reviewid})
     if not review_record:
         raise HTTPException(status_code=404, detail="Review not found or already approved")
     
     return ReviewResponse(**review_record)
 
-@router.get("/products/{product_id}/average-rating/", response_model=float)
-async def get_average_rating(product_id: int):
+@router.get("/products/{productid}/average-rating/", response_model=float)
+async def get_average_rating(productid: int):
     """
     Get the average rating for a specific product.
     """
@@ -75,7 +75,7 @@ async def get_average_rating(product_id: int):
     average_rating_query = load_sql_file("average_rating.sql")
     
     # Execute the query to calculate the average rating
-    result = await database.fetch_one(query=average_rating_query, values={"productID": product_id})
+    result = await database.fetch_one(query=average_rating_query, values={"productid": productid})
     
     if not result or result["average_rating"] is None:
         raise HTTPException(status_code=404, detail="No ratings found for this product")
