@@ -5,7 +5,7 @@ SELECT
     rating,
     CASE 
         WHEN approved = TRUE THEN comment 
-        ELSE 'Not Approved' 
+        ELSE 'This comment has not approved by the manager.' 
     END AS comment,
     approved
 FROM ratings

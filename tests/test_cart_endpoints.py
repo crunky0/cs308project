@@ -97,13 +97,26 @@ def test_remove_cart_item(mock_execute, mock_fetch_one):
     assert response.status_code == 200
     assert response.json() == {"message": "Item removed from cart."}
 
-# Test for getting cart details
 @patch("cart_endpoints.database.fetch_all", new_callable=AsyncMock)
 def test_get_cart(mock_fetch_all):
-    # Mock cart items
+    # Mock cart items with the required `image` field
     mock_fetch_all.return_value = [
-        {"productid": 1, "quantity": 2, "productname": "Product A", "stock": 10, "price": 50.00},
-        {"productid": 2, "quantity": 1, "productname": "Product B", "stock": 5, "price": 30.00}
+        {
+            "productid": 1,
+            "quantity": 2,
+            "productname": "Product A",
+            "stock": 10,
+            "price": 50.00,
+            "image": "https://example.com/product-a.jpg"  # Include image
+        },
+        {
+            "productid": 2,
+            "quantity": 1,
+            "productname": "Product B",
+            "stock": 5,
+            "price": 30.00,
+            "image": "https://example.com/product-b.jpg"  # Include image
+        }
     ]
 
     response = client.get("/cart", params={"userid": 1})
@@ -112,11 +125,28 @@ def test_get_cart(mock_fetch_all):
     assert response.status_code == 200
     assert response.json() == {
         "cart": [
-            {"productid": 1, "productname": "Product A", "quantity": 2, "stock": 10, "price": 50.00, "total_price": 100.00},
-            {"productid": 2, "productname": "Product B", "quantity": 1, "stock": 5, "price": 30.00, "total_price": 30.00}
+            {
+                "productid": 1,
+                "productname": "Product A",
+                "quantity": 2,
+                "stock": 10,
+                "price": 50.00,
+                "total_price": 100.00,
+                "image": "https://example.com/product-a.jpg"
+            },
+            {
+                "productid": 2,
+                "productname": "Product B",
+                "quantity": 1,
+                "stock": 5,
+                "price": 30.00,
+                "total_price": 30.00,
+                "image": "https://example.com/product-b.jpg"
+            }
         ],
         "total_cart_price": 130.00
     }
+
 
 # Test for empty cart
 @patch("cart_endpoints.database.fetch_all", new_callable=AsyncMock)

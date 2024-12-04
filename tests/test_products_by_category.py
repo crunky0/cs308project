@@ -6,7 +6,7 @@ from main import app
 client = TestClient(app)
 
 # Test for retrieving products by category ID
-@patch("products_endpoints.database.fetch_all", new_callable=AsyncMock)
+@patch("product_endpoints.database.fetch_all", new_callable=AsyncMock)
 def test_get_products_by_category(mock_fetch_all):
     # Mock product data for a category
     mock_fetch_all.return_value = [
@@ -80,7 +80,7 @@ def test_get_products_by_category(mock_fetch_all):
     ]
 
 # Test for category with no products
-@patch("products_endpoints.database.fetch_all", new_callable=AsyncMock)
+@patch("product_endpoints.database.fetch_all", new_callable=AsyncMock)
 def test_get_products_by_category_not_found(mock_fetch_all):
     # Mock no products for a category
     mock_fetch_all.return_value = []
