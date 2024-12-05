@@ -7,11 +7,20 @@ router = APIRouter()
 
 # Helper function to load SQL files
 def load_sql_file(filename: str) -> str:
-    file_path = os.path.join("sql", filename)
-    with open(file_path, "r") as file:
-        return file.read()
+    """
+    Load the SQL query from a file in the 'sql' directory.
+    """
+    try:
+        file_path = os.path.join("sql", filename)
+        with open(file_path, "r") as file:
+            return file.read()
+    except FileNotFoundError:
+        raise HTTPException(status_code=500, detail=f"SQL file '{filename}' not found.")
 
 class OrderStatusUpdate(BaseModel):
+    """
+    Pydantic model for the status update request body.
+    """
     orderStatus: str
 
 @router.put("/orders/{order_id}/status/")
@@ -20,11 +29,20 @@ async def update_order_status(order_id: int, status_update: OrderStatusUpdate):
     Update the status of a specific order by its orderID.
     """
     # Load the SQL query from the file
-    update_status_query = load_sql_file("update_order_status.sql")
+    try:
+        update_status_query = load_sql_file("update_order_status.sql")
+    except HTTPException as e:
+        raise e
 
     # Execute the query to update the order status
-    updated_rows = await database.execute(query=update_status_query, values={"orderID": order_id, "orderStatus": status_update.orderStatus})
-    
+    try:
+        updated_rows = await database.execute(query=update_status_query, values={
+            "orderID": order_id, 
+            "orderStatus": status_update.orderStatus
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database query execution failed: {str(e)}")
+
     if updated_rows == 0:
         raise HTTPException(status_code=404, detail="Order not found or status not updated")
 
