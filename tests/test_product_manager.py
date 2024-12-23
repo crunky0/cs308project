@@ -1,8 +1,16 @@
 import pytest
-from main import app 
+import sys
+import os
+
+root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(root_path)
+
 from unittest.mock import AsyncMock, patch
 from fastapi.testclient import TestClient
 
+from main import app  # Make sure `main.py` is importable
+                     # If it's located in another package, adapt the import, e.g.:
+                     # from app.main import app
 
 client = TestClient(app)
 
@@ -33,28 +41,31 @@ review_approval_data = {
 ############################################################
 
 # Successful add product
+@patch("product_manager_endpoints.product_manager_required", return_value=123)  # Bypass the auth check
 @patch("product_manager_endpoints.database.fetch_val", new_callable=AsyncMock)
-def test_add_product_success(mock_fetch_val):
+def test_add_product_success(mock_fetch_val, mock_pm_required):
     """
     Test a successful product creation.
-    We patch `fetch_val` because in the code, you likely do:
+    We patch `fetch_val` because the code likely does:
         productid = await db.fetch_val(query, values)
+    We also patch `product_manager_required` to return
+    a dummy user_id = 123, so no 422 error occurs.
     """
     # Mock the RETURNING productid from the DB
-    mock_fetch_val.return_value = 123
+    mock_fetch_val.return_value = 999
 
     response = client.post("/productmanagerpanel/products", json=product_data)
 
     assert response.status_code == 200
-    # The endpoint returns {"detail": "Product added successfully", "product_id": productid}
     assert response.json() == {
         "detail": "Product added successfully",
-        "product_id": 123
+        "product_id": 999
     }
 
 # Database error when adding product
+@patch("product_manager_endpoints.product_manager_required", return_value=123)
 @patch("product_manager_endpoints.database.fetch_val", new_callable=AsyncMock)
-def test_add_product_db_error(mock_fetch_val):
+def test_add_product_db_error(mock_fetch_val, mock_pm_required):
     """
     Test scenario where there's a DB error during product insert.
     """
@@ -62,7 +73,7 @@ def test_add_product_db_error(mock_fetch_val):
 
     response = client.post("/productmanagerpanel/products", json=product_data)
 
-    # Assuming your code catches Exception and raises HTTP 400
+    # Assuming your endpoint catches Exception and raises HTTP 400
     assert response.status_code == 400
     assert response.json() == {"detail": "Database error"}
 
@@ -70,10 +81,10 @@ def test_add_product_db_error(mock_fetch_val):
 # 2) Test Remove Product
 ############################################################
 
-# Successful remove product
+@patch("product_manager_endpoints.product_manager_required", return_value=123)
 @patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)
 @patch("product_manager_endpoints.database.execute", new_callable=AsyncMock)
-def test_remove_product_success(mock_execute, mock_fetch_one):
+def test_remove_product_success(mock_execute, mock_fetch_one, mock_pm_required):
     """
     Test removing a product successfully.
     We patch fetch_one to simulate product found,
@@ -85,9 +96,9 @@ def test_remove_product_success(mock_execute, mock_fetch_one):
     assert response.status_code == 200
     assert response.json() == {"detail": "Product removed successfully"}
 
-# Product not found case
+@patch("product_manager_endpoints.product_manager_required", return_value=123)
 @patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)
-def test_remove_product_not_found(mock_fetch_one):
+def test_remove_product_not_found(mock_fetch_one, mock_pm_required):
     """
     Test scenario where product doesn't exist in DB.
     """
@@ -102,10 +113,10 @@ def test_remove_product_not_found(mock_fetch_one):
 # 3) Test Update Product Stock
 ############################################################
 
-# Successful stock update
+@patch("product_manager_endpoints.product_manager_required", return_value=123)
 @patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)
 @patch("product_manager_endpoints.database.execute", new_callable=AsyncMock)
-def test_update_product_stock_success(mock_execute, mock_fetch_one):
+def test_update_product_stock_success(mock_execute, mock_fetch_one, mock_pm_required):
     # Mock existing product (e.g., stock=10)
     mock_fetch_one.return_value = {"stock": 10}
 
@@ -116,27 +127,26 @@ def test_update_product_stock_success(mock_execute, mock_fetch_one):
         "new_stock": 15
     }
 
-# Negative stock update
+@patch("product_manager_endpoints.product_manager_required", return_value=123)
 @patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)
-def test_update_product_stock_negative(mock_fetch_one):
+def test_update_product_stock_negative(mock_fetch_one, mock_pm_required):
     """
-    If the client tries to set stock to a negative value, 
+    If the client tries to set stock to a negative value,
     your code likely returns 400 or similar.
     """
     mock_fetch_one.return_value = {"stock": 10}  # product found
     response = client.patch("/productmanagerpanel/products/999/stock", json={"stock": -5})
     assert response.status_code == 400
-    # Example error from your code: "Stock cannot be negative"
     assert response.json() == {"detail": "Stock cannot be negative"}
 
 ############################################################
 # 4) Test Approve or Disapprove Review
 ############################################################
 
-# Successful approval
+@patch("product_manager_endpoints.product_manager_required", return_value=123)
 @patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)
 @patch("product_manager_endpoints.database.execute", new_callable=AsyncMock)
-def test_approve_review_success(mock_execute, mock_fetch_one):
+def test_approve_review_success(mock_execute, mock_fetch_one, mock_pm_required):
     # Simulate review found
     mock_fetch_one.return_value = {"reviewid": 123}
 
@@ -144,9 +154,9 @@ def test_approve_review_success(mock_execute, mock_fetch_one):
     assert response.status_code == 200
     assert response.json() == {"detail": "Review approved successfully"}
 
-# Review not found
+@patch("product_manager_endpoints.product_manager_required", return_value=123)
 @patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)
-def test_approve_review_not_found(mock_fetch_one):
+def test_approve_review_not_found(mock_fetch_one, mock_pm_required):
     mock_fetch_one.return_value = None  # no review found
 
     response = client.patch("/productmanagerpanel/reviews/999", json=review_approval_data)
@@ -157,9 +167,9 @@ def test_approve_review_not_found(mock_fetch_one):
 # 5) Test View Invoices
 ############################################################
 
-# Example test for GET /invoices
+@patch("product_manager_endpoints.product_manager_required", return_value=123)
 @patch("product_manager_endpoints.database.fetch_all", new_callable=AsyncMock)
-def test_get_invoices(mock_fetch_all):
+def test_get_invoices(mock_fetch_all, mock_pm_required):
     mock_fetch_all.return_value = [
         {
             "invoiceid": 1,
@@ -179,8 +189,8 @@ def test_get_invoices(mock_fetch_all):
     response = client.get("/productmanagerpanel/invoices")
     assert response.status_code == 200
 
-    # Example response if your endpoint returns List[InvoiceRead]
     data = response.json()
+    # e.g. if your endpoint returns a list of dicts
     assert len(data) == 2
     assert data[0]["invoiceid"] == 1
     assert data[1]["invoice_number"] == "INV-002"
