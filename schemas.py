@@ -2,44 +2,40 @@
 from pydantic import BaseModel
 from typing import Optional
 
-# Product creation/update
+# Category
+class CategoryCreate(BaseModel):
+    name: str
+
+# Product
 class ProductCreate(BaseModel):
-    serialnumber: Optional[int]
+    categoryid: int
     productname: str
     productmodel: str
     description: str
-    distributerinfo: str
-    warranty: str
+    distributerinfo: Optional[str] = None
+    warranty: Optional[str] = None
     price: float
     stock: int
-    categoryid: int
 
 class ProductStockUpdate(BaseModel):
     stock: int
 
-# Review approval update
-class ReviewUpdate(BaseModel):
+# Review
+class ReviewApproval(BaseModel):
     approved: bool
 
-# (Optional) Delivery status update
-class DeliveryStatusUpdate(BaseModel):
-    status: str
+# Delivery
+class DeliveryUpdate(BaseModel):
+    completed: bool
 
-# Invoice read schema
+# Invoice (to list them)
 class InvoiceRead(BaseModel):
     invoiceid: int
     orderid: int
     invoice_number: str
-    file_path: str
+    file_path: Optional[str] = None
 
+    # Pydantic v2: "from_attributes" instead of "orm_mode"
     class Config:
-        orm_mode = True
+        from_attributes = True
 
-# (Optional) Delivery read schema
-class DeliveryRead(BaseModel):
-    deliveryid: int
-    orderid: int
-    status: str
-
-    class Config:
-        orm_mode = True
