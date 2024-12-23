@@ -15,6 +15,7 @@ from mailing_endpoints import router as mailing_router
 from order_endpoints import router as order_router
 from combined_invoice_endpoints import router as combined_invoice_router
 from product_endpoints import router as product_router
+from sales_manager_endpoints import router as sales_manager_router
 
 
 # FastAPI app initialization with lifespan context
@@ -49,3 +50,4 @@ app.include_router(mailing_router)
 app.include_router(order_router)
 app.include_router(combined_invoice_router)
 app.include_router(product_router)
+app.include_router(sales_manager_router)
