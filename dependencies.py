@@ -1,27 +1,25 @@
-# dependencies.py (example)
+# dependencies.py
 from fastapi import Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from models import User
-from db import database
+from databases import Database
 
+from db import database  # same database instance
 
-def get_current_user(db: Session = Depends(database)):
+def get_database() -> Database:
     """
-    Normally, you'd decode a JWT or retrieve from session here.
-    For demonstration, we will just pick a user that has role='productmanager'.
+    Return the global Database instance as a dependency.
     """
-    user = db.query(User).filter(User.role == "productmanager").first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials"
-        )
-    return user
+    return database
 
-def product_manager_required(current_user: User = Depends(get_current_user)):
-    if current_user.role != "productmanager":
+async def product_manager_required(
+    user_id: int,                 # e.g. extracted from JWT in real usage
+    db: Database = Depends(get_database)
+):
+    query = "SELECT role FROM users WHERE userid = :userid"
+    row = await db.fetch_one(query, {"userid": user_id})
+    if not row or row["role"] != "productmanager":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized as product manager"
+            detail="Not authorized as product manager."
         )
-    return current_user
+    # Return user_id or user record
+    return user_id
