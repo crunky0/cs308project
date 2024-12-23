@@ -16,7 +16,7 @@ async def product_manager_required(
 ):
     query = "SELECT role FROM users WHERE userid = :userid"
     row = await db.fetch_one(query, {"userid": user_id})
-    if not row or row["role"] != "productmanager":
+    if not row or row["role"] != "Productmanager":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized as product manager."

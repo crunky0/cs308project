@@ -1,4 +1,5 @@
 # product_manager_endpoints.py
+
 from fastapi import APIRouter, Depends, HTTPException
 from databases import Database
 from typing import List
@@ -205,3 +206,4 @@ async def approve_or_disapprove_review(
     await db.execute(update_query, {"approved": data.approved, "rid": review_id})
     status_str = "approved" if data.approved else "disapproved"
     return {"detail": f"Review {status_str} successfully"}
+        
