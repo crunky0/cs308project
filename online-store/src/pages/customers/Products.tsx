@@ -12,7 +12,7 @@ interface Product {
   price: number;
   discountPrice?: number;
   image: string;
-  averageRating?: number; // Average rating for display
+  averagerating: number; // Average rating for display
   stock: number;
 }
 
@@ -64,40 +64,21 @@ const Products = () => {
   
       let data = await response.json();
   
-      // Fetch and add ratings to products
-      const productsWithRatings = await Promise.all(
-        data.map(async (product: Product) => {
-          try {
-            const ratingResponse = await fetch(
-              `http://localhost:8000/products/${product.productid}/average-rating/`
-            );
-            const averageRating = ratingResponse.ok
-              ? await ratingResponse.json()
-              : null;
-  
-            return { ...product, averageRating };
-          } catch (error) {
-            console.error(`Error fetching rating for product ${product.productid}:`, error);
-            return { ...product, averageRating: null };
-          }
-        })
-      );
+      // Use averagerating from the API response directly
+      setFilteredProducts(data);
 
-
-      
-  
       // Sort products
       if (sortBy === 'priceLowHigh') {
-        productsWithRatings.sort((a, b) => a.price - b.price);
+        data.sort((a: Product, b: Product) => a.price - b.price);
       } else if (sortBy === 'priceHighLow') {
-        productsWithRatings.sort((a, b) => b.price - a.price);
+        data.sort((a: Product, b: Product) => b.price - a.price);
       } else if (sortBy === 'ratingHighToLow') {
-        productsWithRatings.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
+        data.sort((a: Product, b: Product) => (b.averagerating || 0) - (a.averagerating || 0));
       } else if (sortBy === 'ratingLowToHigh') {
-        productsWithRatings.sort((a, b) => (a.averageRating || 0) - (b.averageRating || 0));
-      }
+        data.sort((a: Product, b: Product) => (a.averagerating || 0) - (b.averagerating || 0));
+      }      
   
-      setFilteredProducts(productsWithRatings);
+      setFilteredProducts(data);
     } catch (error) {
       console.error('Error fetching products:', error);
       setFilteredProducts([]);
@@ -155,9 +136,9 @@ const Products = () => {
       } else if (sortBy === 'priceHighLow') {
         combinedResults.sort((a, b) => b.price - a.price);
       } else if (sortBy === 'ratingHighToLow') {
-        combinedResults.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
+        combinedResults.sort((a, b) => (b.averagerating || 0) - (a.averagerating || 0));
       } else if (sortBy === 'ratingLowToHigh') {
-        combinedResults.sort((a, b) => (a.averageRating || 0) - (b.averageRating || 0));
+        combinedResults.sort((a, b) => (a.averagerating || 0) - (b.averagerating || 0));
       }
   
       setFilteredProducts(combinedResults);

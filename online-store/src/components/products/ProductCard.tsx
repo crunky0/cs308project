@@ -12,7 +12,7 @@ interface ProductCardProps {
   image: string;
   description?: string;
   stock: number; // Optional field
-  averageRating?: number; // Optional field
+  averagerating: number; // Optional field
   onClick?: () => void; // Optional field for custom click handler
 }
 
@@ -24,7 +24,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   image,
   description,
   stock,
-  averageRating,
+  averagerating,
   onClick,
 }) => {
   const navigate = useNavigate();
@@ -60,15 +60,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
         {stock !== undefined && stock !== null && (
           <p className="stock">Stock: {stock}</p>
         )}
-        {averageRating !== undefined && averageRating !== null ? (
+        {averagerating !== undefined && averagerating !== null ? (
           <div className="rating">
             <span className="stars">
               {Array.from({ length: 5 }).map((_, index) => {
                 const fullStarThreshold = index + 1;
                 const halfStarThreshold = index + 0.5;
-                if (averageRating >= fullStarThreshold) {
+                if (averagerating >= fullStarThreshold) {
                   return <span key={index} className="star full">★</span>; // Full star
-                } else if (averageRating >= halfStarThreshold) {
+                } else if (averagerating >= halfStarThreshold) {
                   return <span key={index} className="star half">★</span>; // Half star
                 } else {
                   return <span key={index} className="star empty">★</span>; // Empty star
@@ -76,9 +76,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
               })}
             </span>
             <span className="rating-count">
-              {Number.isInteger(averageRating) 
-                ? averageRating 
-                : averageRating.toFixed(1)
+              {Number.isInteger(averagerating) 
+                ? averagerating 
+                : averagerating.toFixed(1)
               }/5
             </span>
           </div>

@@ -1,42 +1,61 @@
 from db import database
 import asyncio
 
-async def update_orders_table():
-    # SQL commands to modify the `orders` table
-    add_status_column_query = """
-        ALTER TABLE orders
-        ADD COLUMN status TEXT DEFAULT 'processing';
-    """
-    
-    add_check_constraint_query = """
-        ALTER TABLE orders
-        ADD CONSTRAINT check_order_status
-        CHECK (status IN ('processing', 'in-transit', 'delivered'));
-    """
-    
-    update_existing_rows_query = """
-        UPDATE orders
-        SET status = 'processing'
-        WHERE status IS NULL;
-    """
+async def apply_sql_commands():
+    # Split the SQL into separate commands
+    sql_commands = [
+        """
+        CREATE OR REPLACE FUNCTION update_average_rating()
+        RETURNS TRIGGER AS $$
+        BEGIN
+            UPDATE products
+            SET averageRating = (
+                SELECT COALESCE(ROUND(AVG(rating), 2), 0) -- Round to 2 decimal places, default to 0 if no ratings
+                FROM ratings
+                WHERE productID = NEW.productID
+            )
+            WHERE productID = NEW.productID;
+            RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql;
+        """,
+        """
+        CREATE TRIGGER update_product_average_rating
+        AFTER INSERT OR UPDATE ON ratings
+        FOR EACH ROW
+        EXECUTE FUNCTION update_average_rating();
+        """
+    ]
 
     await database.connect()
     try:
-        # Execute queries sequentially
-        await database.execute(add_status_column_query)
-        print("Status column added successfully.")
-        
-        await database.execute(add_check_constraint_query)
-        print("Check constraint added successfully.")
-        
-        await database.execute(update_existing_rows_query)
-        print("Existing rows updated with default status.")
-        
+        # Execute each command sequentially
+        for command in sql_commands:
+            await database.execute(command)
+            print("Executed command successfully.")
     except Exception as e:
-        print(f"Error during migration: {e}")
+        print(f"Error applying SQL changes: {e}")
     finally:
         await database.disconnect()
 
-# Run the migration
+async def update_existing_average_ratings():
+    update_query = """
+        UPDATE products
+        SET averageRating = COALESCE((
+            SELECT ROUND(AVG(rating), 2)
+            FROM ratings
+            WHERE ratings.productID = products.productID
+        ), 0);
+    """
+    await database.connect()
+    try:
+        await database.execute(update_query)
+        print("Existing average ratings updated successfully.")
+    except Exception as e:
+        print(f"Error updating average ratings: {e}")
+    finally:
+        await database.disconnect()
+
 if __name__ == "__main__":
-    asyncio.run(update_orders_table())
+    asyncio.run(apply_sql_commands())
+    #asyncio.run(update_existing_average_ratings())

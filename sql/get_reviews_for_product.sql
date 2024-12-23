@@ -5,7 +5,7 @@ SELECT
     r.rating,
     CASE 
         WHEN r.approved = TRUE THEN r.comment 
-        ELSE 'This comment has not approved by the manager.' 
+        ELSE 'This comment has not been approved by the manager.' 
     END AS comment,
     r.approved,
     u.name,

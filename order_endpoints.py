@@ -3,7 +3,6 @@ from typing import List
 from pydantic import BaseModel
 from db import database  # Import the Database instance
 from order_service import OrderService
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 # Pydantic Models for request validation
 class OrderItemRequest(BaseModel):
