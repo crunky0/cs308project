@@ -1,8 +1,8 @@
 import pytest
+from main import app 
 from unittest.mock import AsyncMock, patch
 from fastapi.testclient import TestClient
 
-from main import app  # Assuming your FastAPI app is defined in main.py
 
 client = TestClient(app)
 
