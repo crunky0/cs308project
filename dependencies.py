@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from models import User
 from db import database
 
+
 def get_current_user(db: Session = Depends(database)):
     """
     Normally, you'd decode a JWT or retrieve from session here.
