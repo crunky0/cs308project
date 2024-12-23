@@ -53,6 +53,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <div className="product-card" onClick={onClick || (() => navigate(`/product/${id}`))}>
+      <div className="wishlist-button" onClick={(e) => e.stopPropagation()}>♡</div>
       <img src={image} alt={name} className="product-image" />
       <div className="product-info">
         <h3>{name}</h3>
