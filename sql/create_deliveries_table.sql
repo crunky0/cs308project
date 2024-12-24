@@ -1,0 +1,7 @@
+
+CREATE TABLE IF NOT EXISTS deliveries (
+    deliveryid SERIAL PRIMARY KEY,
+    orderid INT NOT NULL REFERENCES orders(orderid),
+    status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
