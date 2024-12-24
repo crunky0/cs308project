@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import React, { useState } from 'react';
 import './ProductCard.css';
 
 // Define props for the ProductCard component
@@ -30,6 +31,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const navigate = useNavigate();
   const { addToCart, cart } = useCart();
   const { user } = useAuth(); // Retrieve the logged-in user
+  const [isInWishlist, setIsInWishlist] = useState(false);
 
   // Get the current quantity of the product in the cart
   const currentCartItem = cart.find((item) => item.productid === id);
@@ -51,9 +53,46 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }
   };
 
+
+  const handleWishlistToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the card click event from firing
+    if (!user) {
+      alert('Please log in to manage your wishlist.');
+      return;
+    }
+
+    try {
+      if (isInWishlist) {
+        // Remove from wishlist
+        const response = await fetch(
+          `http://localhost:8000/wishlist/remove?userid=${user.userid}&productid=${id}`,
+          { method: 'DELETE' }
+        );
+        if (!response.ok) throw new Error('Failed to remove from wishlist');
+        setIsInWishlist(false);
+      } else {
+        // Add to wishlist
+        const response = await fetch('http://localhost:8000/wishlist/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userid: user.userid, productid: id }),
+        });
+        if (!response.ok) throw new Error('Failed to add to wishlist');
+        setIsInWishlist(true);
+      }
+    } catch (error) {
+      console.error('Error managing wishlist:', error);
+    }
+  };
+
   return (
     <div className="product-card" onClick={onClick || (() => navigate(`/product/${id}`))}>
-      <div className="wishlist-button" onClick={(e) => e.stopPropagation()}>♡</div>
+      <div
+        className={`wishlist-button ${isInWishlist ? 'in-wishlist' : ''}`}
+        onClick={handleWishlistToggle}
+      >
+        {isInWishlist ? '♥' : '♡'}
+      </div>
       <img src={image} alt={name} className="product-image" />
       <div className="product-info">
         <h3>{name}</h3>

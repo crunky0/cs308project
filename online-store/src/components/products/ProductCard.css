@@ -90,7 +90,26 @@
     box-shadow: var(--shadow-sm);
     transition: all var(--transition-base);
     z-index: 1;
-}
+    font-size: 18px; /* Font size for the heart icon */
+    color: var(--color-gray-700); /* Neutral color for the heart */
+  }
+  
+  .wishlist-button:hover {
+    transform: scale(1.1); /* Slight scaling on hover */
+    box-shadow: var(--shadow-md); /* Enhance the shadow for hover state */
+    color: var(--color-gray-900); /* Darker color for hover */
+  }
+  
+  .wishlist-button.in-wishlist {
+    background-color: var(--color-primary-light); /* Highlight background when added to wishlist */
+    color: var(--color-primary); /* Primary color for the heart when in wishlist */
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .wishlist-button.in-wishlist:hover {
+    background-color: var(--color-primary-dark); /* Darker highlight on hover */
+    color: white; /* Change heart color to white on hover */
+  }  
   
 .rating {
     display: flex;
