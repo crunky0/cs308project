@@ -1,0 +1,1 @@
+DELETE FROM wishlist WHERE userid = :userid AND productid = :productid;

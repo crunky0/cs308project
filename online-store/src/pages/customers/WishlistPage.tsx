@@ -19,31 +19,47 @@ const WishlistPage: React.FC = () => {
 
   const fetchWishlist = useCallback(async () => {
     if (!user) return;
+    setLoading(true); // Set loading state before the API call
     try {
-      const response = await fetch(`http://localhost:8000/wishlist?userid=${user.userid}`);
+      // Fetch the detailed wishlist from the backend
+      const response = await fetch(`http://localhost:8000/wishlist/${user.userid}`);
       if (!response.ok) throw new Error('Failed to fetch wishlist');
-      const data = await response.json();
-      setWishlist(data.wishlist || []);
+      
+      const productDetails = await response.json(); // API returns an array of product details
+      if (!Array.isArray(productDetails)) {
+        throw new Error('Invalid response format from wishlist API');
+      }
+  
+      setWishlist(productDetails); // Directly update the wishlist state with product details
     } catch (error) {
       console.error('Error fetching wishlist:', error);
+      setWishlist([]); // Reset wishlist on error
     } finally {
-      setLoading(false);
+      setLoading(false); // Clear loading state after the API call
     }
   }, [user]);
-
+    
   const handleRemoveFromWishlist = async (productid: number) => {
     if (!user) return;
     try {
-      const response = await fetch(
-        `http://localhost:8000/wishlist/remove?userid=${user.userid}&productid=${productid}`,
-        { method: 'DELETE' }
-      );
+      const response = await fetch(`http://localhost:8000/wishlist/remove`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userid: user.userid,
+          productid: productid,
+        }),
+      });
+  
       if (!response.ok) throw new Error('Failed to remove item from wishlist');
       setWishlist((prev) => prev.filter((item) => item.productid !== productid));
     } catch (error) {
       console.error('Error removing from wishlist:', error);
     }
   };
+  
 
   const handleMoveToCart = async (productid: number) => {
     if (!user) return;

@@ -14,6 +14,8 @@ interface ProductCardProps {
   description?: string;
   stock: number; // Optional field
   averagerating: number; // Optional field
+  isInWishlist: boolean; // Passed down from parent
+  updateWishlist: (productid: number) => void; // Function to toggle wishlist
   onClick?: () => void; // Optional field for custom click handler
 }
 
@@ -26,12 +28,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
   description,
   stock,
   averagerating,
+  isInWishlist,
+  updateWishlist,
   onClick,
 }) => {
   const navigate = useNavigate();
   const { addToCart, cart } = useCart();
   const { user } = useAuth(); // Retrieve the logged-in user
-  const [isInWishlist, setIsInWishlist] = useState(false);
 
   // Get the current quantity of the product in the cart
   const currentCartItem = cart.find((item) => item.productid === id);
@@ -54,35 +57,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
   };
 
 
-  const handleWishlistToggle = async (e: React.MouseEvent) => {
+  const handleWishlistToggle = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent the card click event from firing
     if (!user) {
       alert('Please log in to manage your wishlist.');
       return;
     }
-
-    try {
-      if (isInWishlist) {
-        // Remove from wishlist
-        const response = await fetch(
-          `http://localhost:8000/wishlist/remove?userid=${user.userid}&productid=${id}`,
-          { method: 'DELETE' }
-        );
-        if (!response.ok) throw new Error('Failed to remove from wishlist');
-        setIsInWishlist(false);
-      } else {
-        // Add to wishlist
-        const response = await fetch('http://localhost:8000/wishlist/add', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userid: user.userid, productid: id }),
-        });
-        if (!response.ok) throw new Error('Failed to add to wishlist');
-        setIsInWishlist(true);
-      }
-    } catch (error) {
-      console.error('Error managing wishlist:', error);
-    }
+    updateWishlist(id); // Call the parent's updateWishlist function
   };
 
   return (

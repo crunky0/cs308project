@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/customer/layout/Navbar';
 import ProductCard from '../../components/products/ProductCard';
+import { useAuth } from '../../context/AuthContext';
 import './Products.css';
 
 // Interface definitions
@@ -41,10 +42,60 @@ const Products = () => {
   const [showLeftScroll, setShowLeftScroll] = useState(false);
   const [showRightScroll, setShowRightScroll] = useState(true);
   const [loading, setLoading] = useState<boolean>(false);
+  const [wishlist, setWishlist] = useState<number[]>([]);
   const [sortBy, setSortBy] = useState<string>('popular'); // Default sort
   const [filters, setFilters] = useState<{ [key: string]: string | number | boolean }>({});
   const [searchMode, setSearchMode] = useState<'name' | 'description'>('name');
+  const { user } = useAuth(); // Dynamically retrieve user
 
+  const fetchWishlist = useCallback(async () => {
+    if (!user || !user.userid) {
+      console.error("User ID is not available.");
+      return;
+    }
+  
+    try {
+      const response = await fetch(`http://localhost:8000/wishlist/${user.userid}`);
+      if (!response.ok) throw new Error('Failed to fetch wishlist');
+      const wishlistData = await response.json();
+      setWishlist(wishlistData.map((item: { productid: number }) => item.productid));
+    } catch (error) {
+      console.error('Error fetching wishlist:', error);
+    }
+  }, [user]);
+  
+
+  const toggleWishlist = async (productid: number) => {
+    if (!user || !user.userid) {
+      console.error("User not logged in. Cannot toggle wishlist.");
+      return; // Exit if the user is not logged in
+    }
+  
+    try {
+      if (wishlist.includes(productid)) {
+        // Remove from wishlist
+        const response = await fetch('http://localhost:8000/wishlist/remove', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userid: user.userid, productid }),
+        });
+        if (!response.ok) throw new Error('Failed to remove from wishlist');
+        setWishlist((prev) => prev.filter((id) => id !== productid));
+      } else {
+        // Add to wishlist
+        const response = await fetch('http://localhost:8000/wishlist/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userid: user.userid, productid }),
+        });
+        if (!response.ok) throw new Error('Failed to add to wishlist');
+        setWishlist((prev) => [...prev, productid]);
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+    }
+  };
+  
   
   const fetchProductsByCategory = async (categoryId: number) => {
     setLoading(true);
@@ -159,6 +210,9 @@ const Products = () => {
     }
   }, []);
 
+  useEffect(() => {
+    fetchWishlist();
+  }, [fetchWishlist]);
 
   useEffect(() => {
     fetchProductsByCategory(activeCategory);
@@ -252,7 +306,9 @@ const Products = () => {
             filteredProducts.map((product) => (
               <ProductCard 
                 key={product.productid} 
-                {...product} 
+                {...product}
+                isInWishlist={wishlist.includes(product.productid)} // Pass wishlist status
+                updateWishlist={(productid: number) => toggleWishlist(productid)} // Pass toggle function
                 onClick={() => navigate(`/product/${product.productid}`)} // Navigate to details page
               />
             ))

@@ -1,0 +1,1 @@
+INSERT INTO wishlist (userid, productid) VALUES (:userid, :productid);
