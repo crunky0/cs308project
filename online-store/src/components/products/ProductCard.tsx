@@ -83,26 +83,43 @@ const ProductCard: React.FC<ProductCardProps> = ({
         )}
         {averagerating !== undefined && averagerating !== null ? (
           <div className="rating">
-            <span className="stars">
-              {Array.from({ length: 5 }).map((_, index) => {
-                const fullStarThreshold = index + 1;
-                const halfStarThreshold = index + 0.5;
-                if (averagerating >= fullStarThreshold) {
-                  return <span key={index} className="star full">★</span>; // Full star
-                } else if (averagerating >= halfStarThreshold) {
-                  return <span key={index} className="star half">★</span>; // Half star
-                } else {
-                  return <span key={index} className="star empty">★</span>; // Empty star
-                }
-              })}
-            </span>
-            <span className="rating-count">
-              {Number.isInteger(averagerating) 
-                ? averagerating 
-                : averagerating.toFixed(1)
-              }/5
-            </span>
-          </div>
+          <span className="stars">
+            {Array.from({ length: 5 }).map((_, index) => {
+              const fullStarThreshold = index + 1;
+              const partialStarThreshold = index + 0.5;
+        
+              if (averagerating >= fullStarThreshold) {
+                // Full star
+                return <span key={index} className="star full">★</span>;
+              } else if (averagerating > index && averagerating < fullStarThreshold) {
+                // Partial star
+                const fillPercentage = (averagerating - index) * 100; // Calculate percentage to fill
+                return (
+                  <span key={index} className="star partial">
+                    <span
+                      className="partial-fill"
+                      style={{ width: `${fillPercentage}%` }}
+                    >
+                      ★
+                    </span>
+                    <span className="empty-fill">★</span>
+                  </span>
+                );
+              } else {
+                // Empty star
+                return <span key={index} className="star empty">★</span>;
+              }
+            })}
+          </span>
+          <span className="rating-count">
+            {Number.isInteger(averagerating)
+              ? averagerating
+              : averagerating.toFixed(1)
+            }/5
+          </span>
+        </div>
+        
+               
         ) : (
           <div className="rating">
             <span className="stars">{'★'.repeat(5)}</span>
@@ -117,7 +134,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 <span className="discounted-price">${discountedPrice.toFixed(2)}</span>
               </>
             ) : (
-              <span>${price.toFixed(2)}</span>
+              <span className="price">${price.toFixed(2)}</span>
             )}
           </div>
           <button 
