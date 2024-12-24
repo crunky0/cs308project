@@ -13,6 +13,7 @@ import Refund from './pages/customers/Refund';
 import OrdersPage from './pages/customers/Orders';
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/Signup';
+import WishlistPage from './pages/customers/WishlistPage';
 
 // PM routes
 
@@ -35,6 +36,7 @@ function App() {
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/wishlist" element={<WishlistPage />} />
             {/* PM routes - add a prefix to distinguish them */}
 
 

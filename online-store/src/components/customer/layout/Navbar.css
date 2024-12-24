@@ -223,3 +223,60 @@
 .dropdown-item .material-icons {
   font-size: var(--text-md);
 }
+
+.auth-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px; /* Comfortable padding */
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  color: #ffffff; /* Text color */
+  background-color: #007bff; /* Primary blue */
+  border: 1px solid transparent;
+  border-radius: var(--radius-md); /* Rounded corners */
+  cursor: pointer;
+  text-decoration: none; /* Remove underline if it's a link */
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.auth-button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+  border-color: #004085; /* Slight border color change */
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* Stronger shadow */
+}
+
+.auth-button:active {
+  background-color: #004085; /* Even darker blue on active */
+  transform: scale(0.98); /* Slight "press" effect */
+}
+
+.auth-button:disabled {
+  background-color: #e0e0e0; /* Gray for disabled */
+  color: #9e9e9e;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.auth-button.auth-secondary {
+  background-color: #6c757d; /* Secondary gray color */
+  color: #ffffff;
+  border-color: #6c757d;
+}
+
+.auth-button.auth-secondary:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
+}
+
+.auth-button.auth-outline {
+  background-color: transparent;
+  color: #007bff;
+  border: 1px solid #007bff;
+}
+
+.auth-button.auth-outline:hover {
+  background-color: #007bff;
+  color: #ffffff;
+}

@@ -84,7 +84,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                     <span className="material-icons">receipt_long</span>
                     My Orders
                   </Link>
-                  <Link to="/settings" className="dropdown-item">
+                  <Link to="/wishlist" className="dropdown-item">
                     <span className="material-icons">favorite</span>
                     My Wishlist
                   </Link>
