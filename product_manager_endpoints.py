@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List
+from fastapi.responses import FileResponse
 from dependencies import  product_manager_required
 from pydantic import BaseModel
 from invoice_endpoints import InvoiceRequest
@@ -12,19 +13,21 @@ import os
 
 class DeliveryCreate(BaseModel):
     orderid: int
-    customer_id: int
-    product_id: int
-    status: str
-
+    delivery_address: str
+    
 class DeliveryUpdate(BaseModel):
     status: str
 
 class DeliveryRead(BaseModel):
     deliveryid: int
     orderid: int
-    status: str
-    created_at: datetime
-
+    customerid: int
+    productid: int
+    quantity: int
+    total_price: float
+    delivery_address: str
+    completed: bool
+    
 # Helper function to load SQL files
 def load_sql_file(filename: str) -> str:
     file_path = os.path.join("sql", filename)
@@ -156,23 +159,85 @@ async def mark_delivery_completed(
 
     return {"detail": "Delivery marked as completed"}
 
-# 1) Create a new delivery
 @manager_router.post("/deliveries/create", response_model=DeliveryRead)
 async def create_delivery(
-    delivery_data: DeliveryCreate,  # or a session if you're using session-based
-    current_user_id: int = Depends(product_manager_required)  # if restricted to certain role
+    delivery_data: DeliveryCreate,
+    current_user_id: int = Depends(product_manager_required)
 ):
-    # Insert into DB
-    insert_query = load_sql_file("add_delivery.sql")
-    values = {
+    """
+    1) We find the first item from `order_items` for the given orderid.
+    2) We insert a single row in `deliveries`.
+    3) Return the newly created delivery.
+    """
+
+    # 1) SELECT from order_items + orders (limit to 1 item)
+    fetch_item_query = """
+        SELECT 
+          o.userid AS customerid,
+          oi.productid,
+          oi.quantity,
+          o.totalamount AS total_price
+        FROM order_items oi
+        JOIN orders o ON oi.orderid = o.orderid
+        WHERE oi.orderid = :oid
+
+    """
+    item_row = await database.fetch_one(fetch_item_query, {"oid": delivery_data.orderid})
+    if not item_row:
+        raise HTTPException(status_code=404, detail="No items found for this order")
+
+    # Extract needed fields
+    customerid = item_row["customerid"]
+    productid = item_row["productid"]
+    quantity = item_row["quantity"]
+    total_price = float(item_row["total_price"])  # convert if row is Decimal
+
+    # 2) Insert a single row in deliveries
+    insert_query = """
+        INSERT INTO deliveries (
+          orderid,
+          customerid,
+          productid,
+          quantity,
+          total_price,
+          delivery_address,
+          completed
+        )
+        VALUES (
+          :orderid,
+          :customerid,
+          :productid,
+          :quantity,
+          :total_price,
+          :delivery_address,
+          FALSE
+        )
+        RETURNING 
+          deliveryid,
+          orderid,
+          customerid,
+          productid,
+          quantity,
+          total_price,
+          delivery_address,
+          completed
+    """
+
+    insert_values = {
         "orderid": delivery_data.orderid,
-        "status": delivery_data.status
+        "customerid": customerid,
+        "productid": productid,
+        "quantity": quantity,
+        "total_price": total_price,
+        "delivery_address": delivery_data.delivery_address,
     }
-    row = await database.fetch_one(insert_query, values)
-    if not row:
+
+    new_row = await database.fetch_one(insert_query, insert_values)
+    if not new_row:
         raise HTTPException(status_code=400, detail="Failed to create delivery")
 
-    return DeliveryRead(**dict(row))
+    return DeliveryRead(**dict(new_row))
+
 
 
 
@@ -180,22 +245,39 @@ async def create_delivery(
 #   INVOICES
 #####################
 
-@manager_router.get("/invoices", response_model=List[InvoiceRequest])
-async def get_invoices(
-    current_user_id: int = Depends(product_manager_required),
-):
-    query = """
-        SELECT 
-            invoiceid,
-            orderid,
-            invoice_number,
-            invoice_date,
-            file_path
-        FROM invoices
-        ORDER BY invoiceid
+@manager_router.get("/invoices", response_model=List[str])
+async def list_invoices(current_user_id: int = Depends(product_manager_required)):
     """
-    rows = await database.fetch_all(query)
-    return [InvoiceRequest(**dict(row)) for row in rows]
+    Return a list of all invoice PDF filenames in the 'invoices' folder.
+    """
+    folder_path = "invoices"
+    if not os.path.isdir(folder_path):
+        raise HTTPException(status_code=404, detail="Invoices folder not found")
+
+    # List all PDF files
+    invoice_files = [
+        file_name for file_name in os.listdir(folder_path)
+        if file_name.lower().endswith(".pdf")
+    ]
+    return invoice_files
+
+@manager_router.get("/invoices/{filename}", response_class=FileResponse)
+async def get_invoice(
+    filename: str,
+    current_user_id: int = Depends(product_manager_required)
+):
+    """
+    Return the requested invoice PDF file from the 'invoices' folder.
+    """
+    file_path = os.path.join("invoices", filename)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Invoice not found")
+
+    return FileResponse(
+        path=file_path,
+        media_type="application/pdf",
+        filename=filename
+    )
 
 #####################
 #   REVIEWS
@@ -208,14 +290,14 @@ async def approve_or_disapprove_review(
     current_user_id: int = Depends(product_manager_required),
 ):
     # 1) Check if review exists
-    check_query = "SELECT reviewid FROM reviews WHERE reviewid = :rid"
+    check_query = "SELECT reviewid FROM ratings WHERE reviewid = :rid"
     row = await database.fetch_one(check_query, {"rid": review_id})
     if not row:
         raise HTTPException(status_code=404, detail="Review not found")
 
     # 2) Update the 'approved' field (TRUE/FALSE)
     update_query = """
-        UPDATE reviews
+        UPDATE ratings
         SET approved = :approved
         WHERE reviewid = :rid
     """
