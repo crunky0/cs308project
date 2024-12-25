@@ -42,7 +42,7 @@
 }
 
 .star.half {
-  background: linear-gradient(90deg, var(--color-warning, #ffd700) 50%, var(--color-gray-300) 50%);
+  background: linear-gradient(90deg, gold 50%, var(--color-gray-300) 50%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

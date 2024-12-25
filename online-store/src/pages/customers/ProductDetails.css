@@ -90,7 +90,7 @@
 }
 
 .star.filled {
-  color: #ffd700;
+  color: gold;
 }
 
 .star.half-filled {
@@ -101,7 +101,7 @@
 .star.half-filled::before {
   content: '★';
   position: absolute;
-  color: #ffd700;
+  color: gold;
   width: 50%;
   overflow: hidden;
 }

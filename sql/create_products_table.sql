@@ -19,5 +19,5 @@ CREATE TABLE IF NOT EXISTS products (
     soldamount INT NOT NULL,
     discountPrice NUMERIC(10,2) DEFAULT NULL,
     image VARCHAR(255) NOT NULL,
-    average_rating NUMERIC(3,2) NOT NULL DEFAULT 0
+    averageRating NUMERIC(3,2) NOT NULL DEFAULT 0
 );
