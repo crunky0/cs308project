@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List
 from db import database
 
@@ -7,15 +7,15 @@ router = APIRouter()
 
 class PriceUpdate(BaseModel):
     productid: int
-    new_price: float
+    new_price: float = Field(gt=0, description="Price must be greater than 0")
 
 class DiscountUpdate(BaseModel):
     productid: int
-    discount_price: float
+    discount_price: float = Field(gt=0, description="Discount must be greater than 0")
 
 class CostUpdate(BaseModel):
     productid: int
-    new_cost: float
+    new_cost: float = Field(gt=0, description="Cost must be greater than 0")
 
 class ProfitLossReport(BaseModel):
     productid: int

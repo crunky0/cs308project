@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from db import database  # Import the Database instance
 from order_service import OrderService
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import os
 
 # Pydantic Models for request validation
 class OrderItemRequest(BaseModel):
@@ -81,6 +82,8 @@ async def get_orders_for_user(userid: int):
 
 # Initialize Scheduler
 scheduler = AsyncIOScheduler()
+if os.environ.get("RUNNING_TESTS") != "true":  # Skip scheduler during tests
+    scheduler.start()
 
 # Create an instance of OrderService
 order_service = OrderService(database)
@@ -91,9 +94,6 @@ async def update_order_status_task():
     Scheduled task to update order statuses every 10 seconds.
     """
     await order_service.update_order_statuses()
-
-# Start the scheduler
-scheduler.start()
 
 @router.post("/update_statuses")
 async def update_statuses():
