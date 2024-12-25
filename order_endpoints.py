@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from typing import List
 from pydantic import BaseModel
 from db import database  # Import the Database instance
-from order_service import OrderService
+from services.order_service import OrderService
 
 # Pydantic Models for request validation
 class OrderItemRequest(BaseModel):
