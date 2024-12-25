@@ -326,21 +326,93 @@
 .reviews-list {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px; /* Increased gap for better spacing */
+  padding: 10px; /* Add padding for consistent alignment */
 }
 
 .review-item {
-  border: 1px solid #ccc;
-  padding: 15px;
-  margin-bottom: 15px;
-  background-color: #f9f9f9;
+  border: 1px solid var(--color-gray-200); /* Softer border color */
+  padding: 20px; /* Increased padding for breathing space */
+  border-radius: var(--radius-md); /* Rounded corners for a modern look */
+  background-color: white; /* Clean, neutral background */
+  box-shadow: var(--shadow-sm); /* Add a subtle shadow */
+  transition: all var(--transition-base); /* Smooth hover transition */
+  margin-bottom: 20px;
+}
+
+.review-item:hover {
+  transform: translateY(-3px); /* Slight lift effect on hover */
+  box-shadow: var(--shadow-md); /* Enhance shadow on hover */
 }
 
 .review-header {
-  margin-bottom: 10px;
   display: flex;
   justify-content: space-between;
+  align-items: center; /* Vertically align elements */
+  margin-bottom: 10px; /* Add space below the header */
 }
+
+.reviewer-name {
+  font-weight: var(--font-semibold); /* Make the name bold */
+  font-size: var(--text-md); /* Slightly larger text */
+  color: var(--color-gray-900); /* Darker text for emphasis */
+}
+
+.review-date {
+  font-size: var(--text-sm); /* Smaller text for date */
+  color: var(--color-gray-500); /* Neutral color for less emphasis */
+}
+
+.review-rating {
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Add spacing between stars and rating number */
+}
+
+.review-rating .stars {
+  display: inline-flex;
+  font-size: 1.2rem; /* Adjust size for better visibility */
+  color: gold; /* Highlight stars */
+}
+
+.review-rating .rating-number {
+  font-size: var(--text-sm); /* Smaller, subtle text */
+  color: var(--color-gray-600); /* Neutral color */
+}
+
+.review-body {
+  margin-top: 10px; /* Add space above the review text */
+  font-size: var(--text-sm); /* Standard readable text size */
+  line-height: 1.6; /* Improve readability */
+  color: var(--color-gray-700); /* Neutral text color */
+}
+
+.review-actions {
+  margin-top: 15px; /* Add spacing above actions */
+  display: flex;
+  gap: 10px; /* Add spacing between buttons */
+}
+
+.action-button {
+  padding: 8px 12px; /* Comfortable button size */
+  font-size: var(--text-sm); /* Standard button text size */
+  border: 1px solid var(--color-gray-300); /* Subtle border */
+  border-radius: var(--radius-sm); /* Rounded button corners */
+  background-color: white; /* Neutral background */
+  color: var(--color-gray-700); /* Neutral text color */
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.action-button:hover {
+  background-color: var(--color-gray-100); /* Light hover effect */
+  border-color: var(--color-gray-400); /* Darker border on hover */
+}
+
+.action-button:active {
+  transform: scale(0.98); /* Slight "pressed" effect */
+}
+
 
 .user {
   font-weight: bold;

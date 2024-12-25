@@ -162,8 +162,24 @@ const ProductDetails = () => {
           <p>{product.description}</p>
           {product.rating && (
             <div className="rating">
-              Rating: {product.rating.toFixed(1)} ({reviews.length} reviews)
+            <div className="stars">
+              {Array.from({ length: 5 }).map((_, index) => {
+                const fullValue = index + 1;
+                const isFull = (product.rating ?? 0) >= fullValue;
+                const isHalf = (product.rating ?? 0) > index && (product.rating ?? 0) < fullValue;
+          
+                return (
+                  <span
+                    key={index}
+                    className={`star ${isFull ? 'full' : isHalf ? 'half' : ''}`}
+                  >
+                    ★
+                  </span>
+                );
+              })}
             </div>
+            <span className="rating-text">{product.rating.toFixed(1)} ({reviews.length} reviews)</span> {/* Dynamic review count */}
+          </div>
           )}
           <div className="price">Price: ${product.price.toFixed(2)}</div>
           <div>Model: {product.productmodel}</div>
@@ -179,13 +195,45 @@ const ProductDetails = () => {
   <ReviewForm onSubmit={handleReviewSubmit} />
   {reviews.map((review) => (
   <div key={review.reviewid} className="review-item">
-    <p>
-      <strong>{review.name ? review.name : "Anonymous"} {review.surname ? review.surname : ""}</strong>
-    </p>
-    <p>Rating: {review.rating}</p>
-    <p>{review.comment}</p>
-    
+    {/* Header Section */}
+    <div className="review-header">
+      <span className="reviewer-name">
+        <strong>
+          {review.name ? review.name : "Anonymous"} {review.surname ? review.surname : ""}
+        </strong>
+      </span>
+      <span className="review-date">
+        {review.date ? new Date(review.date).toLocaleDateString() : "Unknown Date"}
+      </span>
+    </div>
+
+    {/* Rating Section */}
+    <div className="review-rating">
+      <span className="stars">
+        {Array.from({ length: 5 }).map((_, index) => {
+          if (review.rating > index) {
+            if (review.rating - index >= 1) {
+              return <span key={index} className="star full">★</span>; // Full star
+            } else {
+              return <span key={index} className="star partial">
+                <span className="partial-fill" style={{ width: `${(review.rating - index) * 100}%` }}>★</span>
+                <span className="empty-fill">★</span>
+              </span>;
+            }
+          } else {
+            return <span key={index} className="star empty">★</span>; // Empty star
+          }
+        })}
+      </span>
+      <span className="rating-number">{review.rating}/5</span>
+    </div>
+
+    {/* Comment Section */}
+    <div className="review-body">
+      {review.comment ? review.comment : "No comment provided."}
+    </div>
   </div>
+
 ))}
 
 </div>
