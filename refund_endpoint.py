@@ -1,53 +1,98 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from databases import Database
+from typing import Dict
+from db import database
+from models import Order, OrderItem
+from dependencies import product_manager_required
 
-# Initialize router
+# Define a Pydantic model for refund requests
+class RefundRequest(BaseModel):
+    orderid: int
+    reason: str
+
+# Define a Pydantic model for refund responses
+class RefundResponse(BaseModel):
+    orderid: int
+    refunded_amount: float
+    status: str
+
+# Create an APIRouter instance
 router = APIRouter()
 
-# Pydantic model for refund request
-class RefundRequest(BaseModel):
-    user_id: int
-    product_id: int
-    quantity: int
-
-from db import database
-
-@router.post("/refund/request")
-async def request_refund(refund: RefundRequest):
-    purchase_query = """
-    SELECT * FROM card 
-    WHERE user_id = :user_id AND product_id = :product_id
+@router.post("/refund", response_model=RefundResponse)
+async def process_refund(refund_request: RefundRequest, user_id: int = Depends(product_manager_required)):
     """
-    purchase = await database.fetch_one(query=purchase_query, values={"user_id": refund.user_id, "product_id": refund.product_id})
-    
-    if not purchase:
-        raise HTTPException(status_code=404, detail="Purchase not found for this user and product.")
+    Endpoint to process a refund for a specific order.
 
-    if refund.quantity > purchase["quantity"]:
-        raise HTTPException(status_code=400, detail="Refund quantity exceeds the purchased quantity.")
+    Args:
+        refund_request (RefundRequest): Contains order ID and reason for refund.
 
-    update_stock_query = """
-    UPDATE products SET stock = stock + :quantity WHERE productid = :product_id
+    Returns:
+        RefundResponse: Refund details including refunded amount and status.
+
+    Raises:
+        HTTPException: If the order does not exist or cannot be refunded.
     """
-    await database.execute(query=update_stock_query, values={"quantity": refund.quantity, "product_id": refund.product_id})
+    try:
+        # Fetch the order details
+        query_order = """
+            SELECT orderid, total_amount
+            FROM orders
+            WHERE orderid = :orderid
+        """
+        order = await database.fetch_one(query_order, {"orderid": refund_request.orderid})
 
-    update_card_query = """
-    UPDATE card SET quantity = quantity - :quantity 
-    WHERE user_id = :user_id AND product_id = :product_id
-    """
-    await database.execute(query=update_card_query, values={"quantity": refund.quantity, "user_id": refund.user_id, "product_id": refund.product_id})
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
 
-    delete_empty_card_query = """
-    DELETE FROM card WHERE user_id = :user_id AND product_id = :product_id AND quantity = 0
-    """
-    await database.execute(query=delete_empty_card_query, values={"user_id": refund.user_id, "product_id": refund.product_id})
+        # Check if the order is eligible for a refund (e.g., no deliveries completed, within refund period)
+        query_delivery_status = """
+            SELECT status
+            FROM deliveries
+            WHERE orderid = :orderid
+        """
+        delivery = await database.fetch_one(query_delivery_status, {"orderid": refund_request.orderid})
 
-    return {
-        "message": "Refund processed successfully.",
-        "details": {
-            "product_id": refund.product_id,
-            "user_id": refund.user_id,
-            "quantity_refunded": refund.quantity
-        }
-    }
+        if delivery and delivery["status"] == "Completed":
+            raise HTTPException(status_code=400, detail="Refund cannot be processed for completed deliveries")
+
+        # Process the refund by marking the order as refunded and updating stock
+        async with database.transaction():
+            # Update order status
+            update_order_query = """
+                UPDATE orders
+                SET status = 'Refunded'
+                WHERE orderid = :orderid
+            """
+            await database.execute(update_order_query, {"orderid": refund_request.orderid})
+
+            # Restore stock for refunded items
+            query_order_items = """
+                SELECT productid, quantity
+                FROM order_items
+                WHERE orderid = :orderid
+            """
+            order_items = await database.fetch_all(query_order_items, {"orderid": refund_request.orderid})
+
+            for item in order_items:
+                restore_stock_query = """
+                    UPDATE products
+                    SET stock = stock + :quantity
+                    WHERE productid = :productid
+                """
+                await database.execute(restore_stock_query, {
+                    "quantity": item["quantity"],
+                    "productid": item["productid"]
+                })
+
+        # Return the refund response
+        return RefundResponse(
+            orderid=refund_request.orderid,
+            refunded_amount=order["total_amount"],
+            status="Refunded"
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred while processing the refund: {str(e)}")
+
