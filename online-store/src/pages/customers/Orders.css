@@ -1,0 +1,201 @@
+.orders-page {
+    max-width: 1200px;
+    margin: 100px auto 40px;
+    padding: 0 20px;
+  }
+  
+  .orders-page h1 {
+    margin-bottom: 32px;
+    color: var(--color-gray-900);
+  }
+  
+  .no-orders {
+    text-align: center;
+    padding: 48px;
+    background: var(--color-gray-50);
+    border-radius: var(--radius-lg);
+  }
+  
+  .no-orders .material-icons {
+    font-size: 48px;
+    color: var(--color-gray-400);
+    margin-bottom: 16px;
+  }
+  
+  .no-orders p {
+    color: var(--color-gray-600);
+    font-size: var(--text-lg);
+  }
+  
+  .orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  .order-card {
+    background: white;
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+  }
+  
+  .order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  
+  .order-info h3 {
+    color: var(--color-gray-900);
+    margin-bottom: 4px;
+  }
+  
+  .order-info p {
+    color: var(--color-gray-600);
+    font-size: var(--text-sm);
+  }
+  
+  .order-status {
+    font-weight: var(--font-medium);
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    background: var(--color-gray-50);
+  }
+  
+  .order-items {
+    border-top: 1px solid var(--color-gray-200);
+    border-bottom: 1px solid var(--color-gray-200);
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .order-item {
+    display: flex;
+    gap: 16px;
+  }
+  
+  .item-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+  }
+  
+  .item-details h4 {
+    margin-bottom: 4px;
+    color: var(--color-gray-900);
+  }
+  
+  .item-details p {
+    color: var(--color-gray-600);
+    font-size: var(--text-sm);
+  }
+  
+  .order-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+  }
+  
+  .order-total {
+    font-size: var(--text-lg);
+    color: var(--color-gray-900);
+  }
+  
+  .total-amount {
+    font-weight: var(--font-bold);
+    margin-left: 8px;
+  }
+  
+  .track-order-btn {
+    padding: 8px 16px;
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: var(--font-medium);
+    transition: background-color var(--transition-base);
+  }
+  
+  .track-order-btn:hover {
+    background-color: var(--color-primary-dark);
+  }
+  
+  .order-actions {
+    display: flex;
+    gap: 12px;
+  }
+  
+  .refund-btn {
+    padding: 8px 16px;
+    background-color: var(--color-error);
+    color: white;
+    border: 1px solid var(--color-error);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: var(--font-medium);
+    transition: all var(--transition-base);
+  }
+  
+  .refund-btn:hover:not(:disabled) {
+    background-color: white;
+    color: var(--color-error);
+    border-color: var(--color-error);
+  }
+  
+  .refund-btn:disabled {
+    background-color: var(--color-gray-300);
+    border-color: var(--color-gray-300);
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  
+  @media (max-width: 768px) {
+    .orders-page {
+      margin-top: 80px;
+    }
+  
+    .order-header {
+      flex-direction: column;
+      gap: 12px;
+    }
+  
+    .order-status {
+      align-self: flex-start;
+    }
+  
+    .order-footer {
+      flex-direction: column;
+      gap: 16px;
+    }
+  
+    .order-actions {
+      width: 100%;
+    }
+  
+    .refund-btn,
+    .track-order-btn {
+      flex: 1;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .orders-page {
+      padding: 0 16px;
+    }
+  
+    .order-card {
+      padding: 16px;
+    }
+  
+    .item-image {
+      width: 60px;
+      height: 60px;
+    }
+  }

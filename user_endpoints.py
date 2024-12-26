@@ -90,7 +90,8 @@ async def login(user: UserLogin):
         "message": "Login successful",
         "user": {
             "userid": db_user["userid"],  
-            "email": db_user["username"]
+            "email": db_user["username"],
+            "role": db_user["role"]
         }
     }
 
@@ -114,5 +115,6 @@ async def get_user_info(userid: int):
         "surname": user_info["surname"],
         "email": user_info["email"],
         "taxID": user_info["taxid"],
-        "homeAddress": user_info["homeaddress"]
+        "homeAddress": user_info["homeaddress"],
+        "role": user_info["role"]
     }

@@ -145,6 +145,7 @@ class Invoice(Base):
     def __repr__(self):
         return f"<Invoice(invoice_number={self.invoice_number}, order_id={self.orderid})>"
 
+
 # models.py (example addition at the bottom of the file)
 
 class Delivery(Base):

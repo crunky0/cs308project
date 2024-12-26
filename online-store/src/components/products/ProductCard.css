@@ -1,0 +1,259 @@
+.product-card {
+    position: relative;
+    background-color: white;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-base);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column; /* Ensure proper stacking */
+    justify-content: space-between; /* Footer stays at the bottom */
+    align-items: stretch;
+    height: 100%; /* Consistent height for all cards */
+    padding: var(--spacing-sm); /* Add padding inside the card */
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.product-image {
+    width: 100%;
+    height: 260px; /* Slightly smaller height for better proportions */
+    object-fit: cover;
+    border-bottom: 1px solid var(--color-gray-100);
+    margin-bottom: var(--spacing-sm); /* Add space between image and info */
+}
+
+.product-info {
+    padding: 0 !important; /* Reset padding */
+    margin: 0; /* Ensure no margin issues */
+    box-sizing: border-box; /* Consistent box model */
+}
+
+.product-info {
+    flex: 1; /* Allow the info section to take available space */
+    padding: var(--spacing-sm); /* Adjust padding to a smaller value */
+    padding-top: 0; /* Remove the top padding */
+    padding-bottom: 0; /* Remove the bottom padding */
+    margin: 0; /* Ensure no unintended margins */
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm); /* Add controlled spacing between elements */
+    justify-content: flex-start;
+    align-items: center; /* Center-align the content */
+}
+
+.product-info h3 {
+    margin: 0;
+    font-size: var(--text-md); /* Adjusted for balance */
+    font-weight: var(--font-medium);
+    color: var(--color-gray-900);
+    text-align: center; /* Center-align product name */
+}
+
+.product-info p {
+    margin: 0;
+    color: var(--color-gray-600);
+    font-size: var(--text-sm);
+    line-height: 1.4;
+    text-align: center; /* Center-align text */
+}
+
+.rating {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.product-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Align items (price and button) vertically */
+    padding: var(--spacing-xs); /* Add padding for breathing room */
+    border-top: 1px solid var(--color-gray-100);
+    gap: var(--spacing-sm); /* Add spacing between price and button */
+}
+
+.price-container {
+    display: flex;
+    flex-direction: column; /* Stack prices vertically */
+    align-items: flex-start; /* Align to the start of the footer */
+    gap: var(--spacing-xxs);
+}
+
+.price {
+    font-size: var(--text-sm); /* Reduced size for the price text */
+    font-weight: var(--font-medium); /* Use medium weight for clarity */
+    color: var(--color-gray-900);
+    text-align: left; /* Ensure alignment within the container */
+}
+
+.original-price {
+    font-size: var(--text-xs); /* Smaller size for the original price */
+    color: var(--color-gray-500);
+    text-decoration: line-through;
+}
+
+.discounted-price {
+    font-size: var(--text-sm); /* Reduced size for discounted price */
+    font-weight: var(--font-semibold);
+    color: var(--color-success, #10b981);
+}
+
+.add-to-cart-btn {
+    padding: var(--spacing-xs) var(--spacing-md); /* Adjust padding for a balanced button size */
+    background-color: var(--color-primary);
+    color: var(--text-light);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: var(--font-medium);
+    font-size: var(--text-xs); /* Reduced size for the button text */
+    cursor: pointer;
+    text-align: center;
+    transition: all var(--transition-base);
+    width: fit-content; /* Ensure the button size wraps its content */
+}
+
+.add-to-cart-btn:hover {
+    background-color: var(--color-primary-dark);
+    transform: translateY(-1px);
+}
+
+.add-to-cart-btn.disabled {
+    background-color: gray;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+
+.add-to-cart-btn:active {
+    transform: translateY(0);
+}
+  
+.wishlist-button {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    background-color: white;
+    border-radius: var(--radius-full);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-base);
+    z-index: 1;
+    font-size: 18px; /* Font size for the heart icon */
+    color: var(--color-gray-700); /* Neutral color for the heart */
+  }
+  
+  .wishlist-button:hover {
+    transform: scale(1.1); /* Slight scaling on hover */
+    box-shadow: var(--shadow-md); /* Enhance the shadow for hover state */
+    color: var(--color-gray-900); /* Darker color for hover */
+  }
+  
+  .wishlist-button.in-wishlist {
+    background-color: var(--color-primary-light); /* Highlight background when added to wishlist */
+    color: var(--color-primary); /* Primary color for the heart when in wishlist */
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .wishlist-button.in-wishlist:hover {
+    background-color: var(--color-primary-dark); /* Darker highlight on hover */
+    color: white; /* Change heart color to white on hover */
+  }  
+  
+.rating {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin: var(--spacing-xs) 0;
+}
+  
+.stars {
+    display: inline-flex;
+    font-size: 1.5rem; /* Yıldız boyutu */
+    line-height: 1;
+    color: #ccc;
+  }
+  
+  .star {
+    position: relative;
+    display: inline-block;
+    width: 1em; /* Yıldız genişliği */
+    height: 1em;
+    color: gold;
+  }
+  .star.full {
+    content: "★";
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    color: gold;
+    z-index: 1;
+  }
+  .star.partial {
+    position: relative;
+    display: inline-block;
+    color: #ccc; /* Default empty star color */
+}
+
+.star.partial .partial-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    overflow: hidden;
+    color: gold; /* Partial star fill color */
+    z-index: 1;
+}
+
+.star.partial .empty-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    color: #ccc; /* Empty star color */
+    z-index: 0;
+}
+    
+  .star.empty {
+    color: #ccc; /* Boş yıldız rengi */
+  }
+  
+.review-count {
+    color: var(--color-gray-500);
+    font-size: var(--text-sm);
+}
+  
+.price-container {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+  
+.original-price {
+    font-size: var(--text-sm);
+    color: var(--color-gray-500);
+    text-decoration: line-through;
+}
+  
+.discounted-price {
+    font-size: var(--text-lg);
+    font-weight: var(--font-bold);
+    color: var(--color-success, #10b981);
+}
+
+.add-to-cart-btn.disabled {
+    background-color: gray;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  
