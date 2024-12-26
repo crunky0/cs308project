@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from db import database  # Import the Database instance
 from order_service import OrderService
 
+
 # Pydantic Models for request validation
 class OrderItemRequest(BaseModel):
     productid: int
