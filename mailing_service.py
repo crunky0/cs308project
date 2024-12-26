@@ -7,6 +7,29 @@ import os
 from typing import Dict
 
 class MailingService:
+    def send_email(self, recipient_email: str, subject: str, body: str) -> None:
+        try:
+            # Load email credentials from environment variables
+            from_email = os.getenv('EMAIL_MAIL_USERNAME')
+            password = os.getenv('EMAIL_MAIL_PASSWORD')
+
+            if not from_email or not password:
+                raise ValueError("Email credentials are not set correctly.")
+
+            # Create the email message
+            message = MIMEMultipart()
+            message["From"] = from_email
+            message["To"] = recipient_email
+            message["Subject"] = subject
+            message.attach(MIMEText(body, "html"))
+
+            # Connect to SMTP server and send the email
+            with smtplib.SMTP("smtp.gmail.com", 587) as server:
+                server.starttls()
+                server.login(from_email, password)
+                server.send_message(message)
+        except Exception as e:
+            raise Exception(f"Failed to send email to {recipient_email}: {str(e)}")
     def send_invoice_email(self, recipient_email: str, invoice_file_path: str) -> Dict[str, str]:
         """
         Sends a formal email with the invoice attached as a PDF.
