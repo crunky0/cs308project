@@ -8,6 +8,7 @@ interface WishlistItem {
   productid: number;
   productname: string;
   price: number;
+  discountprice?: number;
   image: string;
 }
 
@@ -94,7 +95,21 @@ const WishlistPage: React.FC = () => {
                 <img src={item.image} alt={item.productname} className="wishlist-item-image" />
                 <div className="wishlist-item-details">
                   <h2>{item.productname}</h2>
-                  <p>${item.price.toFixed(2)}</p>
+                  <p>
+                    Price: 
+                    {item.discountprice ? (
+                      <>
+                        <span style={{ textDecoration: "line-through", color: "gray" }}>
+                          ${item.price.toFixed(2)}
+                        </span>{" "}
+                        <span style={{ color: "green", fontWeight: "bold" }}>
+                          ${item.discountprice.toFixed(2)}
+                        </span>
+                      </>
+                    ) : (
+                      <>${item.price.toFixed(2)}</>
+                    )}
+                  </p>
                 </div>
                 <div className="wishlist-item-actions">
                   <button

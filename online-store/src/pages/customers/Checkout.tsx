@@ -106,7 +106,7 @@ const Checkout: React.FC = () => {
         items: cart.map(item => ({
           productid: item.productid,
           quantity: item.quantity,
-          price: item.price,
+          price: item.discountprice ?? item.price,
           productname : item.productname
         }))
       };
@@ -292,7 +292,21 @@ const Checkout: React.FC = () => {
                   <div className="item-details">
                     <h3>{item.productname}</h3>
                     <p>Quantity: {item.quantity}</p>
-                    <p>${item.price.toFixed(2)}</p>
+                    <p>
+                      Price: 
+                      {item.discountprice ? (
+                        <>
+                          <span style={{ textDecoration: "line-through", color: "gray" }}>
+                            ${item.price.toFixed(2)}
+                          </span>{" "}
+                          <span style={{ color: "green", fontWeight: "bold" }}>
+                            ${item.discountprice.toFixed(2)}
+                          </span>
+                        </>
+                      ) : (
+                        <>${item.price.toFixed(2)}</>
+                      )}
+                    </p>
                   </div>
                 </div>
               ))}

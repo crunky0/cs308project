@@ -4,6 +4,7 @@ export interface CartItem {
   productid: number;
   productname: string;
   price: number;
+  discountprice? : number;
   stock: number;
   quantity: number;
   total_price: number;
@@ -64,10 +65,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const fullCart = await Promise.all(
           storedCart.map(async (item: { productid: number; quantity: number }) => {
             const productDetails = await fetchProductDetails(item.productid);
+            const priceToUse = productDetails.discountprice ?? productDetails.price;
             return {
               ...productDetails,
               quantity: item.quantity,
-              total_price: productDetails.price * item.quantity,
+              total_price: priceToUse * item.quantity,
             };
           })
         );

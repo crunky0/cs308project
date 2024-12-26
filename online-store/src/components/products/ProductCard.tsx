@@ -9,7 +9,7 @@ interface ProductCardProps {
   productid: number;
   productname: string;
   price: number;
-  discountedPrice?: number; // Optional field
+  discountprice?: number; // Optional field
   image: string;
   description?: string;
   stock: number; // Optional field
@@ -23,7 +23,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   productid: id,
   productname: name,
   price,
-  discountedPrice,
+  discountprice,
   image,
   description,
   stock,
@@ -128,10 +128,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
         )}
         <div className="product-footer">
           <div className="price">
-            {discountedPrice ? (
+            {discountprice ? (
               <>
                 <span className="original-price">${price.toFixed(2)}</span>
-                <span className="discounted-price">${discountedPrice.toFixed(2)}</span>
+                <span className="discounted-price">${discountprice.toFixed(2)}</span>
               </>
             ) : (
               <span className="price">${price.toFixed(2)}</span>

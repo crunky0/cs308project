@@ -57,6 +57,23 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
         </div>
 
         <div className="nav-right">
+          {user?.role === 'Product Manager' && (
+              <button
+                className="auth-button"
+                onClick={() => navigate('/product-manager')}
+              >
+                Product Manager Panel
+              </button>
+            )}
+
+            {user?.role === 'Sales Manager' && (
+              <button
+                className="auth-button"
+                onClick={() => navigate('/sales-manager')}
+              >
+                Sales Manager Panel
+              </button>
+            )}
           <Link to="/cart" className="cart-button">
             <span className="material-icons">shopping_cart</span>
             Cart

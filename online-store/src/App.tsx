@@ -18,6 +18,13 @@ import WishlistPage from './pages/customers/WishlistPage';
 // PM routes
 
 import CommentsRatings from './pages/comments-ratings/CommentsRatings';
+import ProtectedRoute from './components/ProtectedRoute';
+import ProductManagerPanel from './pages/product-manager/ProductManagerPanel';
+import ManageProducts from './pages/product-manager/ManageProducts';
+import ApproveComments from './pages/product-manager/ApproveComments';
+import ManageOrders from './pages/product-manager/ManageOrders';
+import ViewInvoices from './pages/product-manager/ViewInvoices';
+import Unauthorized from './pages/Unauthorized';
 
 function App() {
   return (
@@ -37,10 +44,22 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/wishlist" element={<WishlistPage />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
             {/* PM routes - add a prefix to distinguish them */}
+            <Route
+              path="/product-manager"
+              element={
+                <ProtectedRoute allowedRoles={['Product Manager']}>
+                  <ProductManagerPanel />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="products" element={<ManageProducts />} />
+              <Route path="comments" element={<ApproveComments />} />
+              <Route path="orders" element={<ManageOrders />} />
+              <Route path="invoices" element={<ViewInvoices />} />
+            </Route>
 
-
-            
             {/* Catch-all route */}
             <Route path="*" element={<Navigate to="/products" replace />} />
           </Routes>

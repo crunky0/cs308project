@@ -4,12 +4,14 @@ import React, {
   useState,
   useCallback,
   useMemo,
+  useEffect
 } from 'react';
 
 // Define User and AuthContext types
 interface User {
   userid: number;
   email: string;
+  role: 'Customer' | 'Product Manager' | 'Sales Manager';
 }
 
 interface AuthContextType {
@@ -32,6 +34,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
 
+  useEffect(() => {
+    const storedUser = sessionStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
   const login = useCallback(async (email: string, password: string) => {
     try {
       const response = await fetch('http://localhost:8000/users/login/', {
@@ -46,7 +55,13 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
       }
 
       const data = await response.json();
-      setUser({ userid: data.user.userid, email: data.user.email });
+      const user = {
+        userid: data.user.userid,
+        email: data.user.email,
+        role: data.user.role,
+      };
+      setUser(user);
+      sessionStorage.setItem('user', JSON.stringify(user));
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -82,9 +97,14 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
       }
 
       const data = await response.json();
-      console.log("Signup response data:", data);
 
-      setUser({ userid: data.user.userid, email: data.user.email });
+      const user = {
+        userid: data.user.userid,
+        email: data.user.email,
+        role: data.user.role,
+      };
+      setUser(user);
+      sessionStorage.setItem('user', JSON.stringify(user));
     } catch (error: any) {
       console.error("Signup error:", error.message);
       throw error;
@@ -93,6 +113,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
 
   const logout = useCallback(() => {
     setUser(null);
+    sessionStorage.removeItem('user');
   }, []);
 
   const authValue = useMemo(() => ({

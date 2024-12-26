@@ -11,7 +11,7 @@ interface Product {
   productid: number;
   productname: string;
   price: number;
-  discountPrice?: number;
+  discountprice?: number;
   image: string;
   averagerating: number; // Average rating for display
   stock: number;

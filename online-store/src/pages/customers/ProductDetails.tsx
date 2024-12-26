@@ -21,6 +21,7 @@ interface ProductDetails {
   productid: number;
   productname: string;
   price: number;
+  discountprice?: number;
   image: string;
   description: string;
   rating?: number;
@@ -181,7 +182,21 @@ const ProductDetails = () => {
             <span className="rating-text">{product.rating.toFixed(1)} ({reviews.length} reviews)</span> {/* Dynamic review count */}
           </div>
           )}
-          <div className="price">Price: ${product.price.toFixed(2)}</div>
+          <div className='price'>
+            Price: 
+            {product.discountprice ? (
+              <>
+                <span style={{ textDecoration: "line-through", color: "gray" }}>
+                  ${product.price.toFixed(2)}
+                </span>{" "}
+                <span style={{ color: "green", fontWeight: "bold" }}>
+                  ${product.discountprice.toFixed(2)}
+                </span>
+              </>
+            ) : (
+              <>${product.price.toFixed(2)}</>
+            )}
+          </div>
           <div>Model: {product.productmodel}</div>
           <div>Warranty: {product.warranty}</div>
           <div>Stock: {product.stock}</div>
