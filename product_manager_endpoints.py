@@ -252,7 +252,7 @@ async def get_processing_orders():
 #####################
 
 @manager_router.get("/invoices", response_model=List[str])
-async def list_invoices(current_user_id: int = Depends(product_manager_required)):
+async def list_invoices():
     """
     Return a list of all invoice PDF filenames in the 'invoices' folder.
     """
@@ -269,8 +269,7 @@ async def list_invoices(current_user_id: int = Depends(product_manager_required)
 
 @manager_router.get("/invoices/{filename}", response_class=FileResponse)
 async def get_invoice(
-    filename: str,
-    current_user_id: int = Depends(product_manager_required)
+    filename: str
 ):
     """
     Return the requested invoice PDF file from the 'invoices' folder.
@@ -282,7 +281,8 @@ async def get_invoice(
     return FileResponse(
         path=file_path,
         media_type="application/pdf",
-        filename=filename
+        filename=filename,
+        headers={"Content-Disposition": f"inline; filename={filename}"}
     )
 
 #####################
