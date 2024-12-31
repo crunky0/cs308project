@@ -31,6 +31,9 @@ const ProductManagerPanel = () => {
           </li>
         </ul>
       </nav>
+      <div className="pm-content">
+        <Outlet />
+      </div>
     </div>
   );
 };

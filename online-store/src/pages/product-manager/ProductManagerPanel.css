@@ -1,7 +1,8 @@
 /* Main container for the panel */
 .pm-panel {
-    max-width: 800px;
+    max-width: 100%;
     margin: 0 auto;
+    margin-top: 100px; /* Match the navbar height */
     padding: 20px;
     background-color: #f8f9fa;
     border-radius: 8px;
@@ -63,12 +64,21 @@
   .pm-content {
     margin-top: 80px; /* Space to avoid overlap with the fixed navbar */
     padding: 20px;
+    width: 100%;
+    flex: 1;
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: auto; /* Add scrolling if content overflows */
+    min-height: calc(100vh - 180px); /* Ensure it grows to fill most of the viewport */
+    box-sizing: border-box;
   }
 
   .pm-content:empty {
     display: none; /* Hide the content box if it's empty */
   }
-   
+
+  .pm-wrapper {
+    margin-top: 100px; /* Match the navbar height */
+  }
+  

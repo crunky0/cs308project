@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from typing import Optional
 from db import database
 import os
@@ -56,7 +57,9 @@ async def get_reviews_for_product(productid: int):
     return [ReviewResponse(**review) for review in reviews]
 
 
-@router.put("/reviews/{reviewid}/approve/", response_model=ReviewResponse)
+
+
+@router.put("/reviews/{reviewid}/approve/")
 async def approve_review(reviewid: int):
     # Load the SQL query from the file
     approve_review_query = load_sql_file("approve_rating.sql")
@@ -66,7 +69,9 @@ async def approve_review(reviewid: int):
     if not review_record:
         raise HTTPException(status_code=404, detail="Review not found or already approved")
     
-    return ReviewResponse(**review_record)
+    # Return a success response
+    return JSONResponse(content={"message": "Review approved successfully"}, status_code=200)
+
 
 @router.get("/products/{productid}/average-rating/", response_model=float)
 async def get_average_rating(productid: int):
@@ -83,3 +88,32 @@ async def get_average_rating(productid: int):
         raise HTTPException(status_code=404, detail="No ratings found for this product")
     
     return result["average_rating"]
+
+@router.get("/reviews/not-approved/", response_model=List[ReviewResponse])
+async def get_not_approved_reviews():
+    """
+    Fetch all reviews that are not approved.
+    """
+    # Load the SQL query from the file
+    not_approved_reviews_query = load_sql_file("get_not_approved_reviews.sql")
+
+    # Execute the query to fetch all not-approved reviews
+    reviews = await database.fetch_all(query=not_approved_reviews_query)
+
+    return [ReviewResponse(**review) for review in reviews]
+
+@router.delete("/reviews/{reviewid}/", status_code=204)
+async def delete_review(reviewid: int):
+    """
+    Delete a review by its ID.
+    """
+    # Load the SQL query from the file
+    delete_review_query = load_sql_file("delete_review.sql")
+    
+    # Execute the query to delete the review
+    result = await database.execute(query=delete_review_query, values={"reviewid": reviewid})
+    
+    if result == 0:
+        raise HTTPException(status_code=404, detail="Review not found")
+    
+    return {"detail": "Review deleted successfully"}
