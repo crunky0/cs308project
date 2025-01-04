@@ -45,8 +45,8 @@ class RefundService:
             """
             delivery = await self.db.fetch_one(query_delivery_status, {"orderid": orderid})
 
-            if delivery and delivery["status"] == "Completed":
-                raise ValueError("Refund cannot be processed for completed deliveries")
+            if delivery and delivery["status"] == "in-transit":
+                raise ValueError("Refund cannot be processed for in-transit deliveries")
 
             return order_data
 
@@ -132,13 +132,13 @@ class RefundService:
                 if remaining_items["remaining_items"] > 0:
                     update_order_status_query = """
                         UPDATE orders
-                        SET status = 'Partially Refunded'
+                        SET status = 'partially refunded'
                         WHERE orderid = :orderid
                     """
                 else:
                     update_order_status_query = """
                         UPDATE orders
-                        SET status = 'Refunded'
+                        SET status = 'refunded'
                         WHERE orderid = :orderid
                     """
                 await self.db.execute(update_order_status_query, {"orderid": orderid})
