@@ -1,324 +1,149 @@
 from databases import Database
 from sqlalchemy.exc import SQLAlchemyError
 from typing import Dict, List
+from datetime import datetime, timedelta
 
 class RefundService:
     def __init__(self, db: Database):
         self.db = db
 
     async def validate_order_for_refund(self, orderid: int) -> Dict:
-        
-            # Check if the order is within the 30-day refund period
-            query_order_date = """
-                SELECT order_date
-                FROM orders
-                WHERE orderid = :orderid
-            """
-            order_date = await self.db.fetch_one(query_order_date, {"orderid": orderid})
-            if not order_date:
-                raise ValueError("Order date not found")
-
-            max_refund_date = order_date["order_date"] + timedelta(days=30)
-            if datetime.now() > max_refund_date:
-                raise ValueError("Refund request exceeds the 30-day period")
-
-            
+        """
         Validate if the order is eligible for a refund.
-        
-            # Check if the order is within the 30-day refund period
-            query_order_date = """
-                SELECT order_date
-                FROM orders
-                WHERE orderid = :orderid
-            """
-            order_date = await self.db.fetch_one(query_order_date, {"orderid": orderid})
-            if not order_date:
-                raise ValueError("Order date not found")
 
-            max_refund_date = order_date["order_date"] + timedelta(days=30)
-            if datetime.now() > max_refund_date:
-                raise ValueError("Refund request exceeds the 30-day period")
+        Args:
+            orderid (int): ID of the order to validate.
 
-            
+        Returns:
+            Dict: Order details if eligible.
+
+        Raises:
+            ValueError: If the order is not found or is ineligible for refund.
+        """
         try:
-            # Fetch the order details
-            query_order = 
-            # Check if the order is within the 30-day refund period
+            # Check if the order exists and fetch the order date
             query_order_date = """
-                SELECT order_date
+                SELECT order_date, total_amount
                 FROM orders
                 WHERE orderid = :orderid
             """
-            order_date = await self.db.fetch_one(query_order_date, {"orderid": orderid})
-            if not order_date:
-                raise ValueError("Order date not found")
+            order_data = await self.db.fetch_one(query_order_date, {"orderid": orderid})
 
-            max_refund_date = order_date["order_date"] + timedelta(days=30)
-            if datetime.now() > max_refund_date:
-                raise ValueError("Refund request exceeds the 30-day period")
-
-            
-                SELECT orderid, total_amount
-                FROM orders
-                WHERE orderid = :orderid
-            
-            # Check if the order is within the 30-day refund period
-            query_order_date = """
-                SELECT order_date
-                FROM orders
-                WHERE orderid = :orderid
-            """
-            order_date = await self.db.fetch_one(query_order_date, {"orderid": orderid})
-            if not order_date:
-                raise ValueError("Order date not found")
-
-            max_refund_date = order_date["order_date"] + timedelta(days=30)
-            if datetime.now() > max_refund_date:
-                raise ValueError("Refund request exceeds the 30-day period")
-
-            
-            order = await self.db.fetch_one(query_order, {"orderid": orderid})
-
-            if not order:
+            if not order_data:
                 raise ValueError("Order not found")
 
-            # Check delivery status
-            query_delivery_status = 
             # Check if the order is within the 30-day refund period
-            query_order_date = """
-                SELECT order_date
-                FROM orders
-                WHERE orderid = :orderid
-            """
-            order_date = await self.db.fetch_one(query_order_date, {"orderid": orderid})
-            if not order_date:
-                raise ValueError("Order date not found")
-
-            max_refund_date = order_date["order_date"] + timedelta(days=30)
+            max_refund_date = order_data["order_date"] + timedelta(days=30)
             if datetime.now() > max_refund_date:
                 raise ValueError("Refund request exceeds the 30-day period")
 
-            
+            # Check delivery status
+            query_delivery_status = """
                 SELECT status
                 FROM deliveries
                 WHERE orderid = :orderid
-            
-            # Check if the order is within the 30-day refund period
-            query_order_date = """
-                SELECT order_date
-                FROM orders
-                WHERE orderid = :orderid
             """
-            order_date = await self.db.fetch_one(query_order_date, {"orderid": orderid})
-            if not order_date:
-                raise ValueError("Order date not found")
-
-            max_refund_date = order_date["order_date"] + timedelta(days=30)
-            if datetime.now() > max_refund_date:
-                raise ValueError("Refund request exceeds the 30-day period")
-
-            
             delivery = await self.db.fetch_one(query_delivery_status, {"orderid": orderid})
 
             if delivery and delivery["status"] == "Completed":
                 raise ValueError("Refund cannot be processed for completed deliveries")
 
-            return order
+            return order_data
+
         except SQLAlchemyError as e:
             raise Exception(f"Database error during refund validation: {str(e)}")
 
-    async def process_refund(self, orderid: int) -> float:
-        
-            # Check if the order is within the 30-day refund period
-            query_order_date = """
-                SELECT order_date
-                FROM orders
-                WHERE orderid = :orderid
-            """
-            order_date = await self.db.fetch_one(query_order_date, {"orderid": orderid})
-            if not order_date:
-                raise ValueError("Order date not found")
+    async def process_refund(self, orderid: int, product_quantities: List[Dict[str, int]]) -> float:
+        """
+        Process the refund for selected products by updating the order status and restoring stock.
 
-            max_refund_date = order_date["order_date"] + timedelta(days=30)
-            if datetime.now() > max_refund_date:
-                raise ValueError("Refund request exceeds the 30-day period")
+        Args:
+            orderid (int): ID of the order to refund.
+            product_quantities (List[Dict[str, int]]): List of products with their quantities to refund.
 
-            
-        Process the refund by updating the order status and restoring stock.
-        
-            # Check if the order is within the 30-day refund period
-            query_order_date = """
-                SELECT order_date
-                FROM orders
-                WHERE orderid = :orderid
-            """
-            order_date = await self.db.fetch_one(query_order_date, {"orderid": orderid})
-            if not order_date:
-                raise ValueError("Order date not found")
+        Returns:
+            float: Total refunded amount for the selected products.
 
-            max_refund_date = order_date["order_date"] + timedelta(days=30)
-            if datetime.now() > max_refund_date:
-                raise ValueError("Refund request exceeds the 30-day period")
-
-            
+        Raises:
+            ValueError: If the order is not found or refund is ineligible.
+            Exception: If a database error occurs.
+        """
         try:
+            # Validate the order for refund
+            await self.validate_order_for_refund(orderid)
+
             async with self.db.transaction():
-                # Update order status
-                update_order_query = 
-            # Check if the order is within the 30-day refund period
-            query_order_date = """
-                SELECT order_date
-                FROM orders
-                WHERE orderid = :orderid
-            """
-            order_date = await self.db.fetch_one(query_order_date, {"orderid": orderid})
-            if not order_date:
-                raise ValueError("Order date not found")
+                # Calculate the total refund amount for the selected products
+                total_refunded_amount = 0.0
 
-            max_refund_date = order_date["order_date"] + timedelta(days=30)
-            if datetime.now() > max_refund_date:
-                raise ValueError("Refund request exceeds the 30-day period")
+                for item in product_quantities:
+                    productid = item["productid"]
+                    quantity = item["quantity"]
 
-            
-                    UPDATE orders
-                    SET status = 'Refunded'
-                    WHERE orderid = :orderid
-                
-            # Check if the order is within the 30-day refund period
-            query_order_date = """
-                SELECT order_date
-                FROM orders
-                WHERE orderid = :orderid
-            """
-            order_date = await self.db.fetch_one(query_order_date, {"orderid": orderid})
-            if not order_date:
-                raise ValueError("Order date not found")
+                    # Fetch product price
+                    query_product_price = """
+                        SELECT price
+                        FROM order_items
+                        WHERE orderid = :orderid AND productid = :productid
+                    """
+                    product_data = await self.db.fetch_one(query_product_price, {
+                        "orderid": orderid,
+                        "productid": productid
+                    })
 
-            max_refund_date = order_date["order_date"] + timedelta(days=30)
-            if datetime.now() > max_refund_date:
-                raise ValueError("Refund request exceeds the 30-day period")
+                    if not product_data:
+                        raise ValueError(f"Product ID {productid} not found in the order")
 
-            
-                await self.db.execute(update_order_query, {"orderid": orderid})
+                    product_price = product_data["price"]
+                    total_refunded_amount += product_price * quantity
 
-                # Restore stock for refunded items
-                query_order_items = 
-            # Check if the order is within the 30-day refund period
-            query_order_date = """
-                SELECT order_date
-                FROM orders
-                WHERE orderid = :orderid
-            """
-            order_date = await self.db.fetch_one(query_order_date, {"orderid": orderid})
-            if not order_date:
-                raise ValueError("Order date not found")
-
-            max_refund_date = order_date["order_date"] + timedelta(days=30)
-            if datetime.now() > max_refund_date:
-                raise ValueError("Refund request exceeds the 30-day period")
-
-            
-                    SELECT productid, quantity
-                    FROM order_items
-                    WHERE orderid = :orderid
-                
-            # Check if the order is within the 30-day refund period
-            query_order_date = """
-                SELECT order_date
-                FROM orders
-                WHERE orderid = :orderid
-            """
-            order_date = await self.db.fetch_one(query_order_date, {"orderid": orderid})
-            if not order_date:
-                raise ValueError("Order date not found")
-
-            max_refund_date = order_date["order_date"] + timedelta(days=30)
-            if datetime.now() > max_refund_date:
-                raise ValueError("Refund request exceeds the 30-day period")
-
-            
-                order_items = await self.db.fetch_all(query_order_items, {"orderid": orderid})
-
-                for item in order_items:
-                    restore_stock_query = 
-            # Check if the order is within the 30-day refund period
-            query_order_date = """
-                SELECT order_date
-                FROM orders
-                WHERE orderid = :orderid
-            """
-            order_date = await self.db.fetch_one(query_order_date, {"orderid": orderid})
-            if not order_date:
-                raise ValueError("Order date not found")
-
-            max_refund_date = order_date["order_date"] + timedelta(days=30)
-            if datetime.now() > max_refund_date:
-                raise ValueError("Refund request exceeds the 30-day period")
-
-            
+                    # Restore stock for refunded items
+                    restore_stock_query = """
                         UPDATE products
                         SET stock = stock + :quantity
                         WHERE productid = :productid
-                    
-            # Check if the order is within the 30-day refund period
-            query_order_date = """
-                SELECT order_date
-                FROM orders
-                WHERE orderid = :orderid
-            """
-            order_date = await self.db.fetch_one(query_order_date, {"orderid": orderid})
-            if not order_date:
-                raise ValueError("Order date not found")
-
-            max_refund_date = order_date["order_date"] + timedelta(days=30)
-            if datetime.now() > max_refund_date:
-                raise ValueError("Refund request exceeds the 30-day period")
-
-            
+                    """
                     await self.db.execute(restore_stock_query, {
-                        "quantity": item["quantity"],
-                        "productid": item["productid"]
+                        "quantity": quantity,
+                        "productid": productid
                     })
 
-                # Return the total refunded amount
-                query_total_amount = 
-            # Check if the order is within the 30-day refund period
-            query_order_date = """
-                SELECT order_date
-                FROM orders
-                WHERE orderid = :orderid
-            """
-            order_date = await self.db.fetch_one(query_order_date, {"orderid": orderid})
-            if not order_date:
-                raise ValueError("Order date not found")
+                    # Update order items for refunded quantities
+                    update_order_item_query = """
+                        UPDATE order_items
+                        SET quantity = quantity - :quantity
+                        WHERE orderid = :orderid AND productid = :productid
+                    """
+                    await self.db.execute(update_order_item_query, {
+                        "quantity": quantity,
+                        "orderid": orderid,
+                        "productid": productid
+                    })
 
-            max_refund_date = order_date["order_date"] + timedelta(days=30)
-            if datetime.now() > max_refund_date:
-                raise ValueError("Refund request exceeds the 30-day period")
+                # Update the order status to 'Partially Refunded' if some items remain
+                # Otherwise, mark it as 'Refunded'
+                query_remaining_items = """
+                    SELECT COUNT(*) AS remaining_items
+                    FROM order_items
+                    WHERE orderid = :orderid AND quantity > 0
+                """
+                remaining_items = await self.db.fetch_one(query_remaining_items, {"orderid": orderid})
 
-            
-                    SELECT total_amount
-                    FROM orders
-                    WHERE orderid = :orderid
-                
-            # Check if the order is within the 30-day refund period
-            query_order_date = """
-                SELECT order_date
-                FROM orders
-                WHERE orderid = :orderid
-            """
-            order_date = await self.db.fetch_one(query_order_date, {"orderid": orderid})
-            if not order_date:
-                raise ValueError("Order date not found")
+                if remaining_items["remaining_items"] > 0:
+                    update_order_status_query = """
+                        UPDATE orders
+                        SET status = 'Partially Refunded'
+                        WHERE orderid = :orderid
+                    """
+                else:
+                    update_order_status_query = """
+                        UPDATE orders
+                        SET status = 'Refunded'
+                        WHERE orderid = :orderid
+                    """
+                await self.db.execute(update_order_status_query, {"orderid": orderid})
 
-            max_refund_date = order_date["order_date"] + timedelta(days=30)
-            if datetime.now() > max_refund_date:
-                raise ValueError("Refund request exceeds the 30-day period")
-
-            
-                total_amount = await self.db.fetch_one(query_total_amount, {"orderid": orderid})
-                return total_amount["total_amount"]
+                return total_refunded_amount
 
         except SQLAlchemyError as e:
             raise Exception(f"Database error during refund processing: {str(e)}")
-
