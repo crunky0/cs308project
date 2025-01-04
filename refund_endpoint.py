@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import List, Dict, Optional
 from databases import Database
 from db import database
-from services import RefundService  # Assuming RefundService is in a `services` module
+from refund_process import RefundService  # Assuming RefundService is in a `services` module
 
 # Pydantic models for requests and responses
 class RefundRequest(BaseModel):
@@ -170,3 +170,21 @@ async def manager_decision(
             refunded_amount=0.0,
             status="Denied"
         )
+@router.get("/refund/requests", response_model=List[Dict[str, int]])
+async def get_all_refund_requests():
+    """
+    Fetch all pending refund requests.
+
+    Returns:
+        List[Dict[str, int]]: List of refund requests with order ID, product ID, and quantity.
+    """
+    try:
+        query_all_requests = """
+            SELECT orderid, productid, quantity
+            FROM refund_requests
+        """
+        refund_requests = await database.fetch_all(query_all_requests)
+        return [dict(request) for request in refund_requests]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred while fetching refund requests: {str(e)}")
+

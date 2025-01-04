@@ -8,7 +8,7 @@ def load_sql_file(filename: str) -> str:
 
 async def create_wishlist_table():
     # Load the SQL command from the provided file
-    create_table_sql = load_sql_file("sql/create_wishlist_table.sql")
+    create_table_sql = load_sql_file("sql/create_refund_table.sql")
     
     await database.connect()
     try:
