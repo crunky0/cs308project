@@ -1,7 +1,6 @@
 /* Main Container */
 .manage-orders-container {
     display: flex; /* Flexbox layout */
-    max-width: 1600px;
     flex-direction: column; /* Stack title and content vertically */
     align-items: center; /* Center align the content */
     padding: 20px;
