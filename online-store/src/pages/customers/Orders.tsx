@@ -15,7 +15,7 @@ interface OrderItem {
 interface Order {
   id: number;
   date: string;
-  status: 'processing' | 'in-transit' | 'delivered';
+  status: 'processing' | 'in-transit' | 'delivered' | 'refunded' | 'partially refunded';
   items: OrderItem[];
   total: number;
 }
@@ -81,6 +81,8 @@ const OrdersPage: React.FC = () => {
       processing: 'var(--color-info)',
       'in-transit': 'var(--color-primary)',
       delivered: 'var(--color-success)',
+      refunded: 'orange', // Yellow for refunded
+      'partially refunded': 'orange', // Yellow for partially refunded
     };
     return colors[status];
   };
@@ -150,7 +152,7 @@ const OrdersPage: React.FC = () => {
                       className="refund-btn"
                       onClick={() => handleRefund(order.id)}
                       disabled={!isEligibleForRefund(order)}
-                      title={!isEligibleForRefund(order) ? "Refunds are only available for delivered orders within 30 days of purchase" : ""}
+                      title={!isEligibleForRefund(order) ? "Refunds are only available for delivered and non-refunded orders within 30 days of purchase" : ""}
                     >
                       Request Refund
                     </button>

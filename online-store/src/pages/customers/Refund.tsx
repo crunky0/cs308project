@@ -13,7 +13,7 @@ interface Product {
 
 interface RefundRequest {
   orderid: number;
-  products: number[]; // List of product IDs
+  products: { productid: number; quantity: number }[];
 }
 
 const Refund: React.FC = () => {
@@ -74,7 +74,10 @@ const Refund: React.FC = () => {
 
     const refundRequest: RefundRequest = {
       orderid: parseInt(orderId || '0'),
-      products: selectedProducts,
+      products: selectedProducts.map((productid) => {
+        const product = products.find((p) => p.productid === productid);
+        return { productid, quantity: product ? product.quantity : 1 }; // Default to 1 if product not found
+      }),
     };
 
     try {

@@ -22,18 +22,18 @@ class RefundService:
         """
         try:
             # Check if the order exists and fetch the order date
-            query_order_date = """
-                SELECT order_date, total_amount
+            query_orderdate = """
+                SELECT orderdate, totalamount
                 FROM orders
                 WHERE orderid = :orderid
             """
-            order_data = await self.db.fetch_one(query_order_date, {"orderid": orderid})
+            order_data = await self.db.fetch_one(query_orderdate, {"orderid": orderid})
 
             if not order_data:
                 raise ValueError("Order not found")
 
             # Check if the order is within the 30-day refund period
-            max_refund_date = order_data["order_date"] + timedelta(days=30)
+            max_refund_date = order_data["orderdate"] + timedelta(days=30)
             if datetime.now() > max_refund_date:
                 raise ValueError("Refund request exceeds the 30-day period")
 
@@ -95,7 +95,7 @@ class RefundService:
                         raise ValueError(f"Product ID {productid} not found in the order")
 
                     product_price = product_data["price"]
-                    total_refunded_amount += product_price * quantity
+                    total_refunded_amount += float(product_price) * quantity
 
                     # Restore stock for refunded items
                     restore_stock_query = """
@@ -129,6 +129,7 @@ class RefundService:
                 """
                 remaining_items = await self.db.fetch_one(query_remaining_items, {"orderid": orderid})
 
+                # Update the orders table first
                 if remaining_items["remaining_items"] > 0:
                     update_order_status_query = """
                         UPDATE orders
@@ -143,6 +144,23 @@ class RefundService:
                     """
                 await self.db.execute(update_order_status_query, {"orderid": orderid})
 
+                # Update the deliveries table for refunded products
+                update_deliveries_query = """
+                    UPDATE deliveries
+                    SET status = 'refunded'
+                    WHERE orderid = :orderid
+                    AND productid = ANY(:refunded_productids)
+                    AND status != 'refunded'
+                """
+
+                # Use product IDs from product_quantities directly
+                refunded_productids = [item["productid"] for item in product_quantities]
+
+                # Execute the update query
+                await self.db.execute(update_deliveries_query, {
+                    "orderid": orderid,
+                    "refunded_productids": refunded_productids
+                })
                 return total_refunded_amount
 
         except SQLAlchemyError as e:
