@@ -33,6 +33,17 @@ const ManagePrices: React.FC = () => {
     setSelectedProduct({ ...product, discountprice: newPrice });
   };
 
+  const notifyUsers = async (productid: number) => {
+    try {
+      const response = await fetch(`http://localhost:8000/notify-users/${productid}`, {
+        method: 'POST',
+      });
+      if (!response.ok) throw new Error('Failed to notify users');
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  
   const handleSave = async (product: Product) => {
     try {
       const response = await fetch(`http://localhost:8000/products/${product.productid}/`, {
@@ -42,10 +53,12 @@ const ManagePrices: React.FC = () => {
       });
       if (!response.ok) throw new Error('Failed to update product price');
       fetchProducts();
+      await notifyUsers(product.productid); // Notify users after updating the price
     } catch (err) {
       console.error(err);
     }
   };
+  
 
   return (
     <div className="manage-prices-container">
