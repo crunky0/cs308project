@@ -20,6 +20,7 @@ from wishlist_endpoints import router as wishlist_router
 from product_manager_endpoints import manager_router as product_manager_router
 from delivery_endpoints import router as delivery_router
 from refund_endpoint import router as refund_router
+from cancel_order_endpoints import router as cancel_router
 
 # FastAPI app initialization with lifespan context
 @asynccontextmanager
@@ -58,3 +59,4 @@ app.include_router(wishlist_router)
 app.include_router(product_manager_router)
 app.include_router(delivery_router)
 app.include_router(refund_router)
+app.include_router(cancel_router)
