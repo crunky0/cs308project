@@ -48,14 +48,49 @@ manager_router = APIRouter(
 
 @manager_router.post("/products")
 async def add_product(
-    product_data: ProductCreate,
-    current_user_id: int = Depends(product_manager_required),
-   
+    productname: str,
+    productmodel: str,
+    description: str,
+    distributerinfo: str,
+    warranty: str,
+    stock: int,
+    categoryid: int,
+    image: str
 ):
-    query = load_sql_file("add_product.sql")
-    values = product_data.dict()
-    productid = await database.fetch_val(query, values)
-    return {"detail": "Product added successfully", "product_id": productid}
+    """
+    Add a new product with only the required fields. 
+    Default values will be applied for price, cost, soldamount, discountPrice, and averageRating.
+    """
+    query = """
+        INSERT INTO products (
+            productName, productModel, description, distributerInfo, warranty, 
+            stock, categoryID, image
+        )
+        VALUES (
+            :productname, :productmodel, :description, :distributerinfo, :warranty,
+            :stock, :categoryid, :image
+        )
+        RETURNING productID, productName, productModel, description, distributerInfo, 
+                  warranty, stock, categoryID, image;
+    """
+    values = {
+        "productname": productname,
+        "productmodel": productmodel,
+        "description": description,
+        "distributerinfo": distributerinfo,
+        "warranty": warranty,
+        "stock": stock,
+        "categoryid": categoryid,
+        "image": image,
+    }
+
+    new_product = await database.fetch_one(query=query, values=values)
+
+    if not new_product:
+        raise HTTPException(status_code=400, detail="Failed to add product")
+
+    return dict(new_product)
+
 
 @manager_router.delete("/products/{product_id}")
 async def remove_product(

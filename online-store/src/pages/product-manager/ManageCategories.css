@@ -20,7 +20,7 @@
     margin-bottom: 10px;
   }
   
-  .add-category {
+  .manage-categories-container .add-category {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -28,7 +28,7 @@
     gap: 10px;
   }
   
-  .add-category input {
+  .manage-categories-container .add-category input {
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
@@ -36,7 +36,7 @@
     font-size: 1rem;
   }
   
-  .add-category button {
+  .manage-categories-container .add-category button {
     padding: 10px 15px;
     background-color: #4caf50;
     color: white;
@@ -48,17 +48,17 @@
     transition: background-color 0.3s ease;
   }
   
-  .add-category button:hover {
+  .manage-categories-container .add-category button:hover {
     background-color: #45a049;
   }
   
-  .category-list {
+  .manage-categories-container .category-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
   
-  .category-item {
+  .manage-categories-container .category-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -69,13 +69,13 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   }
   
-  .category-item span {
+  .manage-categories-container .category-item span {
     font-size: 1.1rem;
     font-weight: 500;
     color: #333;
   }
   
-  .category-item button {
+  .manage-categories-container .category-item button {
     padding: 8px 12px;
     background-color: #ff4d4d;
     color: white;
@@ -87,6 +87,6 @@
     transition: background-color 0.3s ease;
   }
   
-  .category-item button:hover {
+  .manage-categories-container .category-item button:hover {
     background-color: #cc0000;
   }  

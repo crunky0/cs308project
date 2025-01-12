@@ -6,40 +6,28 @@ async def update_database_schema():
     await database.connect()
 
     try:
-        # Drop the existing CHECK constraint for `orders`
-        drop_orders_constraint_query = """
-        ALTER TABLE orders
-        DROP CONSTRAINT IF EXISTS check_order_status;
+        # Queries to modify the `products` table
+        modify_price_query = """
+        ALTER TABLE products
+        ALTER COLUMN price SET DEFAULT 1;
         """
 
-        # Add the updated CHECK constraint for `orders`
-        add_orders_constraint_query = """
-        ALTER TABLE orders
-        ADD CONSTRAINT check_order_status
-        CHECK (status IN ('processing', 'in-transit', 'delivered', 'refunded', 'partially refunded'));
+        modify_cost_query = """
+        ALTER TABLE products
+        ALTER COLUMN cost SET DEFAULT 1;
         """
 
-        # Drop the existing CHECK constraint for `deliveries`
-        drop_deliveries_constraint_query = """
-        ALTER TABLE deliveries
-        DROP CONSTRAINT IF EXISTS check_status_valid;
-        """
-
-        # Add the updated CHECK constraint for `deliveries`
-        add_deliveries_constraint_query = """
-        ALTER TABLE deliveries
-        ADD CONSTRAINT check_status_valid
-        CHECK (status IN ('processing', 'in-transit', 'delivered', 'refunded', 'partially refunded'));
+        modify_soldamount_query = """
+        ALTER TABLE products
+        ALTER COLUMN soldamount SET DEFAULT 0;
         """
 
         # Execute the queries in a transaction
         async with database.transaction():
-            await database.execute(drop_orders_constraint_query)
-            await database.execute(add_orders_constraint_query)
-            await database.execute(drop_deliveries_constraint_query)
-            await database.execute(add_deliveries_constraint_query)
+            await database.execute(modify_price_query)
+            await database.execute(modify_cost_query)
 
-        print("Database schema updated successfully!")
+        print("Products table schema updated successfully!")
 
     finally:
         # Disconnect from the database

@@ -184,5 +184,45 @@
     margin-bottom: 10px; /* Space between the image and other content */
     display: block; /* Ensure proper layout */
   }
+
+  /* Dropdown container */
+.modal select {
+  width: 100%; /* Full width */
+  padding: 10px; /* Add padding */
+  border: 1px solid #ddd; /* Border color */
+  border-radius: 5px; /* Rounded corners */
+  background-color: #fff; /* White background */
+  font-size: 1rem; /* Font size */
+  font-family: Arial, sans-serif; /* Font style */
+  color: #333; /* Text color */
+  margin-bottom: 15px; /* Space below dropdown */
+  outline: none; /* Remove default outline */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transitions */
+}
+
+/* Dropdown on focus */
+.modal select:focus {
+  border-color: #4caf50; /* Green border on focus */
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.5); /* Light green glow */
+}
+
+/* Dropdown options */
+.modal select option {
+  padding: 10px; /* Space inside options */
+  font-size: 1rem; /* Font size */
+  color: #333; /* Text color */
+}
+
+/* Disabled option */
+.modal select option:disabled {
+  color: #aaa; /* Gray text for disabled option */
+}
+
+/* Error state (if applicable) */
+.modal select.error {
+  border-color: #ff4d4d; /* Red border */
+  box-shadow: 0 0 5px rgba(255, 77, 77, 0.5); /* Light red glow */
+}
+
   
   
