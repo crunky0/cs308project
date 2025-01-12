@@ -1,7 +1,7 @@
 # product_manager_endpoints.py
 
-from fastapi import APIRouter, Depends, HTTPException
-from typing import List
+from fastapi import APIRouter, Depends, HTTPException, Query
+from typing import List,Optional
 from fastapi.responses import FileResponse
 from dependencies import  product_manager_required
 from pydantic import BaseModel
@@ -252,20 +252,69 @@ async def get_processing_orders():
 #####################
 
 @manager_router.get("/invoices", response_model=List[str])
-async def list_invoices():
+async def list_invoices(
+    start_date: Optional[str] = Query(None, description="Start date in YYYY-MM-DD format"),
+    end_date: Optional[str] = Query(None, description="End date in YYYY-MM-DD format")
+):
     """
-    Return a list of all invoice PDF filenames in the 'invoices' folder.
+    Return a list of invoice filenames within the specified date range.
     """
     folder_path = "invoices"
     if not os.path.isdir(folder_path):
         raise HTTPException(status_code=404, detail="Invoices folder not found")
 
-    # List all PDF files
+    # List all PDF files in the 'invoices' folder
     invoice_files = [
         file_name for file_name in os.listdir(folder_path)
         if file_name.lower().endswith(".pdf")
     ]
-    return invoice_files
+
+    # Parse and validate date parameters
+    start_date_parsed = datetime.strptime(start_date, "%Y-%m-%d") if start_date else None
+    end_date_parsed = datetime.strptime(end_date, "%Y-%m-%d") if end_date else None
+
+    print(f"Start date: {start_date_parsed}, End date: {end_date_parsed}")
+
+    # Dynamically construct the SQL query
+    query = "SELECT orderid, orderdate FROM orders WHERE 1=1"
+    values = {}
+
+    if start_date_parsed:
+        query += " AND orderdate >= :start_date"
+        values["start_date"] = start_date_parsed
+
+    if end_date_parsed:
+        query += " AND orderdate <= :end_date"
+        values["end_date"] = end_date_parsed
+
+    print(f"Final Query: {query}")
+    print(f"Query Values: {values}")
+
+    try:
+        order_rows = await database.fetch_all(query=query, values=values)
+    except Exception as e:
+        print(f"Error executing query: {e}")
+        raise HTTPException(status_code=500, detail="Database query failed.")
+
+    # Extract valid order IDs
+    valid_order_ids = {str(order["orderid"]) for order in order_rows}
+
+    # Filter invoices based on valid file names
+    filtered_invoices = []
+    for file_name in invoice_files:
+        try:
+            # Validate the file name format
+            order_id = file_name.split('-')[1].split('.')[0]
+            if order_id in valid_order_ids:
+                filtered_invoices.append(file_name)
+        except IndexError:
+            # Skip files that do not match the expected format
+            print(f"Skipping invalid file: {file_name}")
+            continue
+
+    return filtered_invoices
+
+
 
 @manager_router.get("/invoices/{filename}", response_class=FileResponse)
 async def get_invoice(

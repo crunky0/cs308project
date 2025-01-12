@@ -89,4 +89,25 @@
     display: flex;
     justify-content: center;
     align-items: center;
-  }  
+  }
+
+  /* Filters */
+.view-invoices-container .filters {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.view-invoices-container .filters label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  color: #333;
+}
+
+.view-invoices-container .filters input {
+  margin-top: 5px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
