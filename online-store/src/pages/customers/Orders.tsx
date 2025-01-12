@@ -26,6 +26,8 @@ const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [showPopup, setShowPopup] = useState<boolean>(false);
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
 
   const fetchOrders = async () => {
     try {
@@ -85,6 +87,39 @@ const OrdersPage: React.FC = () => {
       'partially refunded': 'orange', // Yellow for partially refunded
     };
     return colors[status];
+  };
+
+  const handleCancel = async () => {
+    if (!selectedOrderId) return;
+
+    try {
+      const response = await fetch(`http://localhost:8000/order/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderid: selectedOrderId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to cancel order');
+      }
+
+      alert('Order canceled successfully.');
+      fetchOrders(); // Refresh orders
+      setShowPopup(false);
+    } catch (error) {
+      console.error('Error canceling order:', error);
+      alert('Failed to cancel order. Please try again later.');
+    }
+  };
+
+  const openPopup = (orderId: number) => {
+    setSelectedOrderId(orderId);
+    setShowPopup(true);
+  };
+
+  const closePopup = () => {
+    setShowPopup(false);
+    setSelectedOrderId(null);
   };
 
   const handleRefund = (orderId: number) => {
@@ -148,14 +183,23 @@ const OrdersPage: React.FC = () => {
                     <span className="total-amount">${order.total.toFixed(2)}</span>
                   </div>
                   <div className="order-actions">
-                    <button 
-                      className="refund-btn"
-                      onClick={() => handleRefund(order.id)}
-                      disabled={!isEligibleForRefund(order)}
-                      title={!isEligibleForRefund(order) ? "Refunds are only available for delivered and non-refunded orders within 30 days of purchase" : ""}
-                    >
-                      Request Refund
-                    </button>
+                    {order.status === 'processing' ? (
+                      <button 
+                        className="cancel-btn"
+                        onClick={() => openPopup(order.id)}
+                      >
+                        Cancel Order
+                      </button>
+                    ) : (
+                      <button 
+                        className="refund-btn"
+                        onClick={() => handleRefund(order.id)}
+                        disabled={!isEligibleForRefund(order)}
+                        title={!isEligibleForRefund(order) ? "Refunds are only available for delivered and non-refunded orders within 30 days of purchase" : ""}
+                      >
+                        Request Refund
+                      </button>
+                    )}
                     <button className="track-order-btn">Track Order</button>
                   </div>
                 </div>
@@ -164,6 +208,18 @@ const OrdersPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {showPopup && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <h3>Are you sure you want to cancel this order?</h3>
+            <div className="popup-actions">
+              <button className="confirm-btn" onClick={handleCancel}>Yes</button>
+              <button className="cancel-btn" onClick={closePopup}>No</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
