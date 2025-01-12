@@ -26,6 +26,16 @@ import ManageOrders from './pages/product-manager/ManageOrders';
 import ViewInvoices from './pages/product-manager/ViewInvoices';
 import Unauthorized from './pages/Unauthorized';
 
+// SM routes
+
+
+import ProtectedRouteSM from './components/ProtectedRoute';
+import SalesManagerPanel from './pages/sales-manager/SalesManagerPanel';
+import ManageSales from './pages/sales-manager/ManageSales';
+import ViewInvoicesSM from './pages/product-manager/ViewInvoices';
+import UnauthorizedSM from './pages/Unauthorized';
+import ManagePrices from './pages/sales-manager/ManagePrices';
+
 function App() {
   return (
     <AuthProvider>
@@ -59,9 +69,24 @@ function App() {
               <Route path="orders" element={<ManageOrders />} />
               <Route path="invoices" element={<ViewInvoices />} />
             </Route>
-
+              {/* PM routes - add a prefix to distinguish them */}
+            <Route
+              path="/sales-manager"
+              /*element={
+                <ProtectedRoute allowedRoles={['Sales Manager']}>
+                  <ProductManagerPanel />
+                </ProtectedRoute>
+              }*/
+                element={<SalesManagerPanel />}
+              
+            >
+              <Route path="products" element={<ManageSales />} />
+              </Route>
             {/* Catch-all route */}
             <Route path="*" element={<Navigate to="/products" replace />} />
+            <Route path="/sales-panel" element={<SalesManagerPanel />}>
+            <Route path="manage-prices" element={<ManagePrices />} />
+            </Route>
           </Routes>
         </div>
       </CartProvider>
