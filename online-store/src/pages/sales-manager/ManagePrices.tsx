@@ -33,6 +33,17 @@ const ManagePrices: React.FC = () => {
     setSelectedProduct({ ...product, discountprice: newPrice });
   };
 
+  const notifyUsers = async (productid: number) => {
+    try {
+      const response = await fetch(`http://localhost:8000/notify-users/${productid}`, {
+        method: 'POST',
+      });
+      if (!response.ok) throw new Error('Failed to notify users');
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  
   const handleSave = async (product: Product) => {
     try {
       const response = await fetch(`http://localhost:8000/products/${product.productid}/`, {
@@ -42,17 +53,19 @@ const ManagePrices: React.FC = () => {
       });
       if (!response.ok) throw new Error('Failed to update product price');
       fetchProducts();
+      await notifyUsers(product.productid); // Notify users after updating the price
     } catch (err) {
       console.error(err);
     }
   };
+  
 
   return (
     <div className="manage-prices-container">
-      <h1>Manage Prices</h1>
-      <div className="products-list">
+      <h1 className="manage-prices-header">Manage Prices</h1>
+      <div className="manage-prices-list">
         {products.map((product) => (
-          <div key={product.productid} className="product-card">
+          <div key={product.productid} className="manage-prices-card">
             <h2>{product.productname}</h2>
             <p>Original Price: ${product.price.toFixed(2)}</p>
             <p>
@@ -64,9 +77,14 @@ const ManagePrices: React.FC = () => {
               placeholder="Enter discount %"
               value={discount}
               onChange={(e) => setDiscount(parseFloat(e.target.value))}
+              className="manage-prices-input"
             />
-            <button onClick={() => applyDiscount(product, discount)}>Apply Discount</button>
-            <button onClick={() => handleSave(selectedProduct!)}>Save</button>
+            <button onClick={() => applyDiscount(product, discount)} className="manage-prices-btn">
+              Apply Discount
+            </button>
+            <button onClick={() => handleSave(selectedProduct!)} className="manage-prices-save-btn">
+              Save
+            </button>
           </div>
         ))}
       </div>

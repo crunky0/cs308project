@@ -13,25 +13,25 @@ const NavbarPM: React.FC = () => {
   };
 
   return (
-    <header className="pm-navbar">
-      <div className="pm-nav-content">
+    <header className="am-navbar">
+      <div className="am-nav-content">
         {/* Left Section */}
-        <div className="pm-nav-left">
-          <Link to="/sales-manager" className="pm-logo">
-            <span className="pm-logo-text">Sales Manager Panel</span>
+        <div className="am-nav-left">
+          <Link to="/sales-manager" className="am-logo">
+            <span className="am-logo-text">Sales Manager Panel</span>
           </Link>
         </div>
 
         {/* Right Section */}
-        <div className="pm-nav-right">
+        <div className="am-nav-right">
           <button
-            className="pm-auth-button pm-auth-outline"
+            className="am-auth-button am-auth-outline"
             onClick={() => navigate('/products')}
           >
             Main Shop
           </button>
           <button
-            className="pm-auth-button pm-logout"
+            className="am-auth-button am-logout"
             onClick={handleLogout}
           >
             Logout

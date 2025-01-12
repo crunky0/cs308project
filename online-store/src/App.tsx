@@ -32,10 +32,10 @@ import Unauthorized from './pages/Unauthorized';
 import ProtectedRouteSM from './components/ProtectedRoute';
 import SalesManagerPanel from './pages/sales-manager/SalesManagerPanel';
 import ManageSales from './pages/sales-manager/ManageSales';
-import ViewInvoicesSM from './pages/product-manager/ViewInvoices';
+import ViewInvoicesSM from './pages/sales-manager/ViewInvoicesSM';
 import UnauthorizedSM from './pages/Unauthorized';
 import ManagePrices from './pages/sales-manager/ManagePrices';
-
+import RevenueReport from './pages/sales-manager/RevenueReport';
 function App() {
   return (
     <AuthProvider>
@@ -86,6 +86,8 @@ function App() {
             <Route path="*" element={<Navigate to="/products" replace />} />
             <Route path="/sales-panel" element={<SalesManagerPanel />}>
             <Route path="manage-prices" element={<ManagePrices />} />
+            <Route path="view-invoices" element={<ViewInvoicesSM />} />
+            <Route path="revenue-report" element={<RevenueReport />} />
             </Route>
           </Routes>
         </div>

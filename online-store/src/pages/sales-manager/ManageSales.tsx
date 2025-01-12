@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import './ManageSales.css';
-import { useNavigate } from 'react-router-dom';
-
 
 interface Product {
   productid: number;
@@ -76,7 +74,7 @@ const SalesManager: React.FC = () => {
   }, []);
 
   return (
-    <div className="manage-products-container">
+    <div className="manage-sales-container">
       <h1>Sales Manager</h1>
       {loading && <p>Loading products...</p>}
       {error && <p className="error">{error}</p>}
@@ -90,10 +88,9 @@ const SalesManager: React.FC = () => {
             {product.discountprice && (
               <p><strong>Discount Price:</strong> ${product.discountprice.toFixed(2)}</p>
             )}
-            <button onClick={() => navigate('/sales-panel/manage-prices')} className="discount-btn">
-            Select for Discount
+            <button onClick={() => setSelectedProduct(product.productid)} className="edit-btn">
+              Select for Discount
             </button>
-
           </div>
         ))}
       </div>

@@ -1,5 +1,5 @@
 /* Navbar styles */
-.pm-navbar {
+.am-navbar {
     position: fixed;
     top: 0;
     left: 0;
@@ -11,7 +11,7 @@
   }
   
   /* Navbar content layout */
-  .pm-nav-content {
+  .am-nav-content {
     max-width: 1200px;
     margin: 0 auto;
     height: 100%;
@@ -22,27 +22,27 @@
   }
   
   /* Logo section */
-  .pm-nav-left {
+  .am-nav-left {
     display: flex;
     align-items: center;
     gap: 10px;
   }
   
-  .pm-logo {
+  .am-logo {
     text-decoration: none;
     display: flex;
     align-items: center;
     gap: 10px;
   }
   
-  .pm-logo-text {
+  .am-logo-text {
     font-size: 1.5rem;
     font-weight: bold;
     color: black;
   }
   
   /* Right section */
-  .pm-nav-right {
+  .am-nav-right {
     display: flex;
     align-items: center;
     gap: 15px;
@@ -50,7 +50,7 @@
   }
   
   /* Buttons */
-  .pm-auth-button {
+  .am-auth-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -67,18 +67,18 @@
     transition: all 0.3s ease;
   }
   
-  .pm-auth-button:hover {
+  .am-auth-button:hover {
     background-color: #007bff;
     color: white;
   }
   
-  .pm-auth-button.pm-logout {
+  .am-auth-button.am-logout {
     background-color: #dc3545;
     border: 1px solid #dc3545;
     color: white;
   }
   
-  .pm-auth-button.pm-logout:hover {
+  .am-auth-button.am-logout:hover {
     background-color: #c82333;
     color: white;
   }
