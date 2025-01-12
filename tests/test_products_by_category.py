@@ -9,6 +9,7 @@ client = TestClient(app)
 @patch("product_endpoints.database.fetch_all", new_callable=AsyncMock)
 def test_get_products_by_category(mock_fetch_all):
     # Mock product data for a category
+    # NOTE: Added "averagerating" to each dict to avoid ValidationError
     mock_fetch_all.return_value = [
         {
             "productid": 1,
@@ -23,7 +24,8 @@ def test_get_products_by_category(mock_fetch_all):
             "categoryid": 1,
             "soldamount": 5,
             "discountprice": None,
-            "image": "http://example.com/image_a.jpg"
+            "image": "http://example.com/image_a.jpg",
+            "averagerating": 4.5  # <-- added to fix the missing field
         },
         {
             "productid": 2,
@@ -38,7 +40,8 @@ def test_get_products_by_category(mock_fetch_all):
             "categoryid": 1,
             "soldamount": 8,
             "discountprice": 129.99,
-            "image": "http://example.com/image_b.jpg"
+            "image": "http://example.com/image_b.jpg",
+            "averagerating": 3.7  # <-- added to fix the missing field
         }
     ]
 
@@ -60,7 +63,8 @@ def test_get_products_by_category(mock_fetch_all):
             "categoryid": 1,
             "soldamount": 5,
             "discountprice": None,
-            "image": "http://example.com/image_a.jpg"
+            "image": "http://example.com/image_a.jpg",
+            "averagerating": 4.5
         },
         {
             "productid": 2,
@@ -75,7 +79,8 @@ def test_get_products_by_category(mock_fetch_all):
             "categoryid": 1,
             "soldamount": 8,
             "discountprice": 129.99,
-            "image": "http://example.com/image_b.jpg"
+            "image": "http://example.com/image_b.jpg",
+            "averagerating": 3.7
         }
     ]
 
