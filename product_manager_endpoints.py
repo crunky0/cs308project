@@ -43,41 +43,6 @@ manager_router = APIRouter(
 )
 
 #####################
-#   CATEGORY
-#####################
-
-@manager_router.post("/categories")
-async def add_category(
-    category_data: str,
-    current_user_id: int = Depends(product_manager_required),
-
-):
-    query = """
-        INSERT INTO categories (name)
-        VALUES (:name)
-        RETURNING categoryid
-    """
-    values = {"name": category_data}
-    categoryid = await database.fetch_val(query, values)
-    return {"detail": "Category added successfully", "categoryid": categoryid}
-
-@manager_router.delete("/categories/{category_id}")
-async def remove_category(
-    category_id: int,
-    current_user_id: int = Depends(product_manager_required),
-  
-):
-    # check if exists
-    check_query = "SELECT categoryid FROM categories WHERE categoryid = :cat_id"
-    row = await database.fetch_one(check_query, {"cat_id": category_id})
-    if not row:
-        raise HTTPException(status_code=404, detail="Category not found")
-
-    delete_query = "DELETE FROM categories WHERE categoryid = :cat_id"
-    await database.execute(delete_query, {"cat_id": category_id})
-    return {"detail": "Category removed successfully"}
-
-#####################
 #   PRODUCTS
 #####################
 
@@ -360,5 +325,82 @@ async def approve_or_disapprove_review(
 
     status_str = "approved" if approved else "disapproved"
     return {"detail": f"Review {status_str} successfully"}
+
+#####################
+#   CATEGORIES
+#####################
+@manager_router.get("/categories", response_model=List[dict])
+async def fetch_categories():
+    """
+    Fetch all categories.
+    """
+    query = "SELECT categoryid, name FROM categories ORDER BY categoryid ASC"
+    categories = await database.fetch_all(query=query)
+    return [{"categoryid": row["categoryid"], "name": row["name"]} for row in categories]
+
+@manager_router.get("/products", response_model=List[dict])
+async def fetch_products():
+    """
+    Fetch all products with their category names.
+    """
+    query = """
+        SELECT 
+            p.productid, 
+            p.productname, 
+            p.price, 
+            p.stock, 
+            c.name AS categoryname
+        FROM 
+            products p
+        JOIN 
+            categories c 
+        ON 
+            p.categoryid = c.categoryid
+        ORDER BY 
+            p.productid ASC
+    """
+    products = await database.fetch_all(query=query)
+    return [
+        {
+            "productid": row["productid"],
+            "productname": row["productname"],
+            "price": row["price"],
+            "stock": row["stock"],
+            "categoryname": row["categoryname"],  # Now using the correct column name
+        }
+        for row in products
+    ]
+@manager_router.post("/categories")
+async def add_category(name: str):
+    """
+    Add a new category.
+    """
+    query = "INSERT INTO categories (name) VALUES (:name) RETURNING categoryid, name"
+    new_category = await database.fetch_one(query=query, values={"name": name})
+    if not new_category:
+        raise HTTPException(status_code=400, detail="Failed to create category")
+    return {"categoryid": new_category["categoryid"], "name": new_category["name"]}
+
+@manager_router.delete("/categories/{categoryid}")
+async def delete_category(categoryid: int):
+    """
+    Delete a category and its associated products.
+    """
+    # Check if the category exists
+    check_query = "SELECT categoryid FROM categories WHERE categoryid = :categoryid"
+    category = await database.fetch_one(query=check_query, values={"categoryid": categoryid})
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+
+    # Delete all products in the category
+    delete_products_query = "DELETE FROM products WHERE categoryid = :categoryid"
+    await database.execute(query=delete_products_query, values={"categoryid": categoryid})
+
+    # Delete the category
+    delete_category_query = "DELETE FROM categories WHERE categoryid = :categoryid"
+    await database.execute(query=delete_category_query, values={"categoryid": categoryid})
+
+    return {"detail": f"Category {categoryid} and its associated products have been deleted"}
+
 
         

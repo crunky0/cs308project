@@ -15,6 +15,11 @@ const ProductManagerPanel = () => {
             </Link>
           </li>
           <li>
+            <Link to="categories" className="pm-link">
+              Manage Categories
+            </Link>
+          </li>
+          <li>
             <Link to="comments" className="pm-link">
               Approve Comments
             </Link>

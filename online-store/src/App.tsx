@@ -36,6 +36,7 @@ import ViewInvoicesSM from './pages/sales-manager/ViewInvoicesSM';
 import UnauthorizedSM from './pages/Unauthorized';
 import ManagePrices from './pages/sales-manager/ManagePrices';
 import RevenueReport from './pages/sales-manager/RevenueReport';
+import ManageCategories from './pages/product-manager/ManageCategories';
 function App() {
   return (
     <AuthProvider>
@@ -65,6 +66,7 @@ function App() {
               }
             >
               <Route path="products" element={<ManageProducts />} />
+              <Route path="categories" element={<ManageCategories />} />
               <Route path="comments" element={<ApproveComments />} />
               <Route path="orders" element={<ManageOrders />} />
               <Route path="invoices" element={<ViewInvoices />} />
