@@ -1,0 +1,188 @@
+/* Container Styling */
+.manage-products-container {
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+    background-color: #f9f9f9;
+  }
+  
+  .manage-products-container h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .manage-products-container .error {
+    color: red;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  /* Add Product Button */
+  .manage-products-container .add-btn {
+    display: block;
+    margin: 0 auto 20px;
+    background-color: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+  }
+  
+  .manage-products-container .add-btn:hover {
+    opacity: 0.9;
+  }
+  
+  /* Products List */
+  .manage-products-container .products-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+  }
+  
+  .manage-products-container .product-card {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    width: 250px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .manage-products-container .product-card img {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+  
+  .manage-products-container .product-card h2 {
+    margin: 10px 0;
+    font-size: 18px;
+    color: #333;
+    text-align: center;
+  }
+  
+  .manage-products-container .product-card p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #555;
+  }
+  
+  .manage-products-container .product-card button {
+    margin-top: 10px;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    width: 100%;
+  }
+  
+  .manage-products-container .product-card .delete-btn {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .manage-products-container .product-card .delete-btn:hover {
+    background-color: #e53935;
+  }
+  
+  .manage-products-container .product-card .edit-btn {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .manage-products-container .product-card .edit-btn:hover {
+    background-color: #0069d9;
+  }
+  
+  /* Modal Overlay */
+  .manage-products-container .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  /* Modal Styling */
+.manage-products-container .modal {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 500px;
+    max-width: 90%;
+    max-height: 90%;
+    overflow-y: auto; /* Scrollable for large forms */
+  }
+  
+  .manage-products-container .modal input,
+  .manage-products-container .modal textarea {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+  
+  .manage-products-container .modal textarea {
+    resize: vertical;
+    height: 60px;
+  }
+  
+  .manage-products-container .modal button {
+    margin-top: 10px;
+    padding: 10px;
+    width: 100%;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .manage-products-container .modal .add-btn {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .manage-products-container .modal .add-btn:hover {
+    background-color: #45a049;
+  }
+  
+  .manage-products-container .modal .cancel-btn {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .manage-products-container .modal .cancel-btn:hover {
+    background-color: #e53935;
+  }
+
+  .manage-products-container .product-card img {
+    width: 200px; /* Set a consistent width */
+    height: 200px; /* Set a consistent height */
+    object-fit: cover; /* Ensure the image scales without distortion */
+    border-radius: 5px; /* Add some rounding for aesthetics */
+    margin-bottom: 10px; /* Space between the image and other content */
+    display: block; /* Ensure proper layout */
+  }
+  
+  
