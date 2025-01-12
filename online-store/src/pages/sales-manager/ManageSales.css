@@ -1,24 +1,24 @@
 /* Container Styling */
-.manage-products-container {
+.manage-sales-container {
     padding: 20px;
     font-family: 'Arial', sans-serif;
     background-color: #f9f9f9;
   }
   
-  .manage-products-container h1 {
+  .manage-sales-container h1 {
     text-align: center;
     color: #333;
     margin-bottom: 20px;
   }
   
-  .manage-products-container .error {
+  .manage-sales-container .error {
     color: red;
     text-align: center;
     margin-bottom: 20px;
   }
   
   /* Add Product Button */
-  .manage-products-container .add-btn {
+  .manage-sales-container .add-btn {
     display: block;
     margin: 0 auto 20px;
     background-color: #4caf50;
@@ -32,19 +32,19 @@
     text-align: center;
   }
   
-  .manage-products-container .add-btn:hover {
+  .manage-sales-container .add-btn:hover {
     opacity: 0.9;
   }
   
   /* Products List */
-  .manage-products-container .products-list {
+  .manage-sales-container .products-list {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
     justify-content: center;
   }
   
-  .manage-products-container .product-card {
+  .manage-sales-container .product-card {
     background-color: white;
     border: 1px solid #ddd;
     border-radius: 8px;
@@ -56,27 +56,27 @@
     align-items: center;
   }
   
-  .manage-products-container .product-card img {
+  .manage-sales-container .product-card img {
     width: 100%;
     height: auto;
     border-radius: 5px;
     margin-bottom: 10px;
   }
   
-  .manage-products-container .product-card h2 {
+  .manage-sales-container .product-card h2 {
     margin: 10px 0;
     font-size: 18px;
     color: #333;
     text-align: center;
   }
   
-  .manage-products-container .product-card p {
+  .manage-sales-container .product-card p {
     margin: 5px 0;
     font-size: 14px;
     color: #555;
   }
   
-  .manage-products-container .product-card button {
+  .manage-sales-container .product-card button {
     margin-top: 10px;
     padding: 10px;
     border: none;
@@ -87,26 +87,26 @@
     width: 100%;
   }
   
-  .manage-products-container .product-card .delete-btn {
+  .manage-sales-container .product-card .delete-btn {
     background-color: #f44336;
     color: white;
   }
   
-  .manage-products-container .product-card .delete-btn:hover {
+  .manage-sales-container .product-card .delete-btn:hover {
     background-color: #e53935;
   }
   
-  .manage-products-container .product-card .edit-btn {
+  .manage-sales-container .product-card .edit-btn {
     background-color: #007bff;
     color: white;
   }
   
-  .manage-products-container .product-card .edit-btn:hover {
+  .manage-sales-container .product-card .edit-btn:hover {
     background-color: #0069d9;
   }
   
   /* Modal Overlay */
-  .manage-products-container .modal-overlay {
+  .manage-sales-container .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -120,7 +120,7 @@
   }
   
   /* Modal Styling */
-.manage-products-container .modal {
+.manage-sales-container .modal {
     background-color: white;
     padding: 20px;
     border-radius: 8px;
@@ -131,8 +131,8 @@
     overflow-y: auto; /* Scrollable for large forms */
   }
   
-  .manage-products-container .modal input,
-  .manage-products-container .modal textarea {
+  .manage-sales-container .modal input,
+  .manage-sales-container .modal textarea {
     width: 100%;
     margin-bottom: 10px;
     padding: 8px;
@@ -142,12 +142,12 @@
     box-sizing: border-box;
   }
   
-  .manage-products-container .modal textarea {
+  .manage-sales-container .modal textarea {
     resize: vertical;
     height: 60px;
   }
   
-  .manage-products-container .modal button {
+  .manage-sales-container .modal button {
     margin-top: 10px;
     padding: 10px;
     width: 100%;
@@ -158,25 +158,25 @@
     cursor: pointer;
   }
   
-  .manage-products-container .modal .add-btn {
+  .manage-sales-container .modal .add-btn {
     background-color: #4caf50;
     color: white;
   }
   
-  .manage-products-container .modal .add-btn:hover {
+  .manage-sales-container .modal .add-btn:hover {
     background-color: #45a049;
   }
   
-  .manage-products-container .modal .cancel-btn {
+  .manage-sales-container .modal .cancel-btn {
     background-color: #f44336;
     color: white;
   }
   
-  .manage-products-container .modal .cancel-btn:hover {
+  .manage-sales-container .modal .cancel-btn:hover {
     background-color: #e53935;
   }
 
-  .manage-products-container .product-card img {
+  .manage-sales-container .product-card img {
     width: 200px; /* Set a consistent width */
     height: 200px; /* Set a consistent height */
     object-fit: cover; /* Ensure the image scales without distortion */
