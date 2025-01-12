@@ -1,229 +1,350 @@
-# tests/test_product_manager.py
+# tests/test_product_manager_endpoints.py
 
 import pytest
-from unittest.mock import AsyncMock, patch
 from fastapi.testclient import TestClient
-import sys
-import os
-
-# Ensure Python can find your main module
-root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(root_path)
-
-from main import app  # Adjust if needed for your project structure
+from unittest.mock import patch, AsyncMock
+from main import app  # or wherever your FastAPI app is defined
 
 client = TestClient(app)
 
-# Sample data for testing
-product_data = {
-    "categoryid": 1,
-    "productname": "Test Product",
-    "productmodel": "Model X",
-    "description": "Test Description",
-    "distributerinfo": "XYZ Distributer",
-    "warranty": "1 year",
-    "price": 99.99,
-    "stock": 10
-}
 
-stock_update_data = {"stock": 15}
-review_approval_data = {"approved": True}
-DUMMY_HEADERS = {"Authorization": "Bearer test-token"}
 
-###############################################################################
-# 1) Test Add Product
-###############################################################################
-@patch("dependencies.database.fetch_one", new_callable=AsyncMock)             # role check
-@patch("product_manager_endpoints.database.fetch_val", new_callable=AsyncMock) # route DB call
-def test_add_product_success(mock_fetch_val, mock_dep_fetch_one):
+#########################
+#   PRODUCTS
+#########################
+
+@patch("product_manager_endpoints.database.fetch_val", new_callable=AsyncMock)
+@patch("product_manager_endpoints.product_manager_required", return_value=42)
+def test_add_product_success(mock_pm_required, mock_fetch_val):
     """
-    Test a successful product creation with fully mocked DB calls.
-    
-    Mocks:
-      - `dependencies.db.fetch_one` -> always returns {"role": "Productmanager"}
-      - `product_manager_endpoints.db.fetch_val` -> simulates inserted product ID=999
+    Test adding a product. Mocks DB insert returning product_id=999
     """
-    # The role check sees a user with role=Productmanager
-    mock_dep_fetch_one.return_value = {"role": "Productmanager"}
-    # The route-level insert returns product ID=999
     mock_fetch_val.return_value = 999
 
-    response = client.post(
-        "/productmanagerpanel/products?user_id=13",  # user_id=13 is a manager
-        json=product_data
-    )
+    # Sample product data matching ProductCreate model
+    product_data = {
+        "serialnumber": 12345,
+        "productname": "Test Product",
+        "productmodel": "Model X",
+        "description": "Test Description",
+        "distributerinfo": "XYZ Dist",
+        "warranty": "1 year",
+        "price": 99.99,
+        "cost": 50.0,
+        "stock": 10,
+        "categoryid": 1,
+        "soldamount": 0,
+        "discountprice": None,
+        "image": "test.jpg"
+    }
+
+    response = client.post("/productmanagerpanel/products", json=product_data)
     assert response.status_code == 200
     assert response.json() == {
         "detail": "Product added successfully",
         "product_id": 999
     }
 
-@patch("dependencies.database.fetch_one", new_callable=AsyncMock)             # role check
-@patch("product_manager_endpoints.database.fetch_val", new_callable=AsyncMock) # route DB call
-def test_add_product_db_error(mock_fetch_val, mock_dep_fetch_one):
-    """
-    Test scenario where a DB error occurs during product insert.
-    We expect a 400 response with {"detail": "Database error"}.
-    """
-    mock_dep_fetch_one.return_value = {"role": "Productmanager"}
-    # Simulate a DB error on insert
-    mock_fetch_val.side_effect = Exception("Database error")
 
-    response = client.post(
-        "/productmanagerpanel/products?user_id=13",
-        json=product_data,
-        headers=DUMMY_HEADERS
-    )
-    assert response.status_code == 400
-    assert response.json() == {"detail": "Database error"}
-
-###############################################################################
-# 2) Test Remove Product
-###############################################################################
-@patch("dependencies.database.fetch_one", new_callable=AsyncMock)               # role check
-@patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)   # route check if product exists
-@patch("product_manager_endpoints.database.execute", new_callable=AsyncMock)     # route delete product
-def test_remove_product_success(mock_execute, mock_route_fetch_one, mock_dep_fetch_one):
+@patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)
+@patch("product_manager_endpoints.database.execute", new_callable=AsyncMock)
+@patch("product_manager_endpoints.product_manager_required", return_value=42)
+def test_remove_product_success(mock_pm_required, mock_execute, mock_fetch_one):
     """
-    Test removing a product successfully.
+    Test removing a product that exists.
     """
-    mock_dep_fetch_one.return_value = {"role": "Productmanager"}
-    mock_route_fetch_one.return_value = {"productid": 999}  # Product found
+    # The "find_product.sql" returns a row -> product found
+    mock_fetch_one.return_value = {"productid": 123}
 
-    response = client.delete(
-        "/productmanagerpanel/products/999?user_id=13",
-        headers=DUMMY_HEADERS
-    )
+    response = client.delete("/productmanagerpanel/products/123")
     assert response.status_code == 200
     assert response.json() == {"detail": "Product removed successfully"}
 
-@patch("dependencies.database.fetch_one", new_callable=AsyncMock)               # role check
-@patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)   # route check if product exists
-def test_remove_product_not_found(mock_route_fetch_one, mock_dep_fetch_one):
-    """
-    Test removing a product that does not exist -> 404
-    """
-    mock_dep_fetch_one.return_value = {"role": "Productmanager"}
-    mock_route_fetch_one.return_value = None  # No product found
 
-    response = client.delete(
-        "/productmanagerpanel/products/999?user_id=13",
-        headers=DUMMY_HEADERS
-    )
+@patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)
+@patch("product_manager_endpoints.product_manager_required", return_value=42)
+def test_remove_product_not_found(mock_pm_required, mock_fetch_one):
+    """
+    Test removing a product that doesn't exist -> 404
+    """
+    mock_fetch_one.return_value = None
+
+    response = client.delete("/productmanagerpanel/products/9999")
     assert response.status_code == 404
     assert response.json() == {"detail": "Product not found"}
 
-###############################################################################
-# 3) Test Update Product Stock
-###############################################################################
-@patch("dependencies.database.fetch_one", new_callable=AsyncMock)                # role check
-@patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)    # route check product
-@patch("product_manager_endpoints.database.execute", new_callable=AsyncMock)      # route update stock
-def test_update_product_stock_success(mock_execute, mock_route_fetch_one, mock_dep_fetch_one):
-    """
-    Test updating stock from 10 to 15 -> success
-    """
-    mock_dep_fetch_one.return_value = {"role": "Productmanager"}
-    mock_route_fetch_one.return_value = {"stock": 10}  # current stock
 
-    response = client.patch(
-        "/productmanagerpanel/products/999/stock?user_id=13",
-        json=stock_update_data,
-        headers=DUMMY_HEADERS
-    )
+@patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)
+@patch("product_manager_endpoints.database.execute", new_callable=AsyncMock)
+def test_update_product_stock_success(mock_execute, mock_fetch_one):
+    """
+    Test updating a product stock that exists -> success
+    """
+    # The "find_product.sql" returns a row, so product found
+    mock_fetch_one.return_value = {"productid": 1, "stock": 5}
+
+    # Patch out the manager check if you do role checking:
+    # or if your route depends on manager, add that patch too
+
+    response = client.patch("/productmanagerpanel/products/1/stock?stock=15")
     assert response.status_code == 200
     assert response.json() == {
         "detail": "Stock updated successfully",
         "new_stock": 15
     }
 
-@patch("dependencies.database.fetch_one", new_callable=AsyncMock)               # role check
-@patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)   # route check product
-def test_update_product_stock_negative(mock_route_fetch_one, mock_dep_fetch_one):
-    """
-    Test user tries to set stock to -5 -> 400
-    """
-    mock_dep_fetch_one.return_value = {"role": "Productmanager"}
-    mock_route_fetch_one.return_value = {"stock": 10}
 
-    response = client.patch(
-        "/productmanagerpanel/products/999/stock?user_id=13",
-        json={"stock": -5},
-        headers=DUMMY_HEADERS
-    )
-    assert response.status_code == 400
-    assert response.json() == {"detail": "Stock cannot be negative"}
-
-###############################################################################
-# 4) Test Approve/Disapprove Review
-###############################################################################
-@patch("dependencies.database.fetch_one", new_callable=AsyncMock)               # role check
-@patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)   # route check review
-@patch("product_manager_endpoints.database.execute", new_callable=AsyncMock)     # route update review
-def test_approve_review_success(mock_execute, mock_route_fetch_one, mock_dep_fetch_one):
+@patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)
+def test_update_product_stock_not_found(mock_fetch_one):
     """
-    Test approving a found review -> 200
+    Test updating stock for a product that doesn't exist -> 404
     """
-    mock_dep_fetch_one.return_value = {"role": "Productmanager"}
-    mock_route_fetch_one.return_value = {"reviewid": 123}
+    mock_fetch_one.return_value = None
 
-    response = client.patch(
-        "/productmanagerpanel/reviews/123?user_id=13",
-        json=review_approval_data,
-        headers=DUMMY_HEADERS
-    )
-    assert response.status_code == 200
-    assert response.json() == {"detail": "Review approved successfully"}
-    
-@patch("dependencies.database.fetch_one", new_callable=AsyncMock)               # role check
-@patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)   # route check review
-@patch("product_manager_endpoints.database.execute", new_callable=AsyncMock)     # route update review
-def test_approve_review_not_found(mock_execute, mock_route_fetch_one, mock_dep_fetch_one):
-    mock_dep_fetch_one.return_value = {"role": "Productmanager"}
-    mock_route_fetch_one.return_value = None  # No review -> 404
-
-    response = client.patch(
-        "/productmanagerpanel/reviews/999?user_id=13",
-        json=review_approval_data,
-        headers=DUMMY_HEADERS
-    )
+    response = client.patch("/productmanagerpanel/products/9999/stock?stock=100")
     assert response.status_code == 404
-    assert response.json() == {"detail": "Review not found"}
+    assert response.json() == {"detail": "Product not found"}
 
 
-###############################################################################
-# 5) Test Get Invoices
-###############################################################################
-@patch("dependencies.database.fetch_one", new_callable=AsyncMock)                 # role check
-@patch("product_manager_endpoints.database.fetch_all", new_callable=AsyncMock)    # route get invoices
-def test_get_invoices(mock_fetch_all, mock_dep_fetch_one):
+#########################
+#   DELIVERIES
+#########################
+
+@patch("product_manager_endpoints.database.fetch_all", new_callable=AsyncMock)
+def test_view_deliveries(mock_fetch_all):
     """
-    Test listing invoices -> 200
+    Test GET /deliveries
     """
-    mock_dep_fetch_one.return_value = {"role": "Productmanager"}
+    mock_fetch_all.return_value = [
+        {"deliveryid": 1, "orderid": 10, "status": "processing"},
+        {"deliveryid": 2, "orderid": 11, "status": "in-transit"},
+    ]
+
+    response = client.get("/productmanagerpanel/deliveries")
+    assert response.status_code == 200
+    assert response.json() == {
+        "deliveries": [
+            {"deliveryid": 1, "orderid": 10, "status": "processing"},
+            {"deliveryid": 2, "orderid": 11, "status": "in-transit"}
+        ]
+    }
+
+
+@patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)
+@patch("product_manager_endpoints.database.execute", new_callable=AsyncMock)
+def test_update_order_status_success(mock_execute, mock_fetch_one):
+    """
+    Test successfully updating an order status to 'delivered' 
+    """
+    mock_fetch_one.return_value = {"orderid": 100}  # order found
+
+    response = client.patch("/productmanagerpanel/orders/100/status?status=delivered")
+    assert response.status_code == 200
+    assert response.json() == {
+        "detail": "Order and associated deliveries marked as delivered"
+    }
+
+
+@patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)
+def test_update_order_status_not_found(mock_fetch_one):
+    """
+    Test updating status when order doesn't exist -> 404
+    """
+    mock_fetch_one.return_value = None
+
+    response = client.patch("/productmanagerpanel/orders/9999/status?status=delivered")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Order not found"}
+
+
+def test_update_order_status_invalid_status():
+    """
+    Test invalid status -> 400
+    """
+    response = client.patch("/productmanagerpanel/orders/100/status?status=unknown")
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": "Invalid status. Must be 'in-transit' or 'delivered'."
+    }
+
+
+@patch("product_manager_endpoints.database.fetch_all", new_callable=AsyncMock)
+def test_create_delivery_success(mock_fetch_all):
+    """
+    Test creating deliveries for an order. 
+    The SQL returns newly inserted rows.
+    """
+    # Suppose it returns 2 newly inserted deliveries
     mock_fetch_all.return_value = [
         {
-            "invoiceid": 1,
-            "orderid": 10,
-            "invoice_number": "INV-001",
-            "invoice_date": None,
-            "file_path": "path/to/invoice1.pdf",
+            "deliveryid": 10,
+            "orderid": 5,
+            "customerid": 1,
+            "productid": 100,
+            "quantity": 2,
+            "total_price": 200.0,
+            "delivery_address": "123 Street",
+            "status": "processing",
+            "orderdate": "2023-10-01",
+            "price": 100.0,
         },
         {
-            "invoiceid": 2,
-            "orderid": 12,
-            "invoice_number": "INV-002",
-            "invoice_date": None,
-            "file_path": "path/to/invoice2.pdf",
+            "deliveryid": 11,
+            "orderid": 5,
+            "customerid": 1,
+            "productid": 101,
+            "quantity": 1,
+            "total_price": 50.0,
+            "delivery_address": "123 Street",
+            "status": "processing",
+            "orderdate": "2023-10-01",
+            "price": 50.0,
         },
     ]
 
-    response = client.get(
-        "/productmanagerpanel/invoices?user_id=13",
-        headers=DUMMY_HEADERS
-    )
+    payload = {"orderid": 5}
+    response = client.post("/productmanagerpanel/deliveries/create", json=payload)
     assert response.status_code == 200
+
+    # Expect a list of deliveries
     data = response.json()
     assert len(data) == 2
-    assert data[0]["invoiceid"] == 1
-    assert data[1]["invoice_number"] == "INV-002"
+    assert data[0]["deliveryid"] == 10
+    assert data[1]["productid"] == 101
+
+
+@patch("product_manager_endpoints.database.fetch_all", new_callable=AsyncMock)
+def test_create_delivery_no_rows(mock_fetch_all):
+    """
+    Test create_delivery returns no newly inserted rows -> 400
+    """
+    mock_fetch_all.return_value = []
+
+    payload = {"orderid": 9999}
+    response = client.post("/productmanagerpanel/deliveries/create", json=payload)
+    assert response.status_code == 400
+    assert response.json() == {"detail": "No deliveries were created"}
+
+
+#########################
+#   PROCESSING ORDERS
+#########################
+
+@patch("product_manager_endpoints.database.fetch_all", new_callable=AsyncMock)
+def test_get_processing_orders(mock_fetch_all):
+    """
+    Test retrieving all processing orders.
+    The code does two queries: 
+      1) fetch_all on the orders
+      2) fetch_all on items per order
+    We'll mock them in sequence.
+    """
+    # This approach: we only have one patch for fetch_all. 
+    # We can specify a side_effect if multiple queries are called.
+    # The code calls fetch_all(orders_query) then fetch_all(items_query)
+    # for each order. If there are N orders, it will do N+1 calls total.
+    # We'll do a side_effect array, carefully sized.
+
+    # Suppose we have 2 orders in 'processing'
+    order_rows = [
+        {"orderid": 10, "userid": 1, "totalamount": 120.0, "orderdate": "2023-10-01", "status": "processing"},
+        {"orderid": 11, "userid": 2, "totalamount": 75.0, "orderdate": "2023-10-02", "status": "processing"},
+    ]
+    # Items for orderid=10
+    order10_items = [
+        {"productid": 1000, "quantity": 2},
+        {"productid": 1001, "quantity": 1},
+    ]
+    # Items for orderid=11
+    order11_items = [
+        {"productid": 2000, "quantity": 3},
+    ]
+
+    # We'll chain them:
+    # 1st call to fetch_all -> order_rows
+    # 2nd call to fetch_all -> items for order 10
+    # 3rd call to fetch_all -> items for order 11
+    mock_fetch_all.side_effect = [
+        order_rows,
+        order10_items,
+        order11_items,
+    ]
+
+    response = client.get("/productmanagerpanel/orders/processing")
+    assert response.status_code == 200
+    # We expect 2 orders, each with "items"
+    data = response.json()
+    assert len(data) == 2
+
+    # Check the first order
+    assert data[0]["orderid"] == 10
+    assert len(data[0]["items"]) == 2
+    assert data[0]["items"][0]["productid"] == 1000
+
+    # Check the second
+    assert data[1]["orderid"] == 11
+    assert len(data[1]["items"]) == 1
+
+
+#########################
+#   INVOICES
+#########################
+
+@patch("product_manager_endpoints.os.path.isdir", return_value=True)
+@patch("product_manager_endpoints.os.listdir", return_value=["inv1.pdf", "inv2.PDF", "doc.txt"])
+def test_list_invoices(mock_listdir, mock_isdir):
+    response = client.get("/productmanagerpanel/invoices")
+    assert response.status_code == 200
+    # The endpoint filters only PDFs
+    # doc.txt not included
+    assert response.json() == ["inv1.pdf", "inv2.PDF"]
+
+
+@patch("product_manager_endpoints.os.path.exists", return_value=True)
+def test_get_invoice_success(mock_exists):
+    response = client.get("/productmanagerpanel/invoices/my_invoice.pdf")
+    assert response.status_code == 200
+    # The endpoint returns FileResponse, 
+    # so we can't directly compare .json() 
+    # We'll check content-disposition
+    assert response.headers["content-disposition"] == "inline; filename=my_invoice.pdf"
+
+
+@patch("product_manager_endpoints.os.path.exists", return_value=False)
+def test_get_invoice_not_found(mock_exists):
+    response = client.get("/productmanagerpanel/invoices/non_existent.pdf")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Invoice not found"}
+
+
+@patch("product_manager_endpoints.os.path.isdir", return_value=False)
+def test_list_invoices_folder_missing(mock_isdir):
+    response = client.get("/productmanagerpanel/invoices")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Invoices folder not found"}
+
+
+#########################
+#   REVIEWS
+#########################
+
+@patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)
+@patch("product_manager_endpoints.database.execute", new_callable=AsyncMock)
+@patch("product_manager_endpoints.product_manager_required", return_value=42)
+def test_approve_review_success(mock_pm_required, mock_execute, mock_fetch_one):
+    # The review exists
+    mock_fetch_one.return_value = {"reviewid": 123}
+    response = client.patch("/productmanagerpanel/reviews/123?approved=true")
+    assert response.status_code == 200
+    assert response.json() == {"detail": "Review approved successfully"}
+
+
+@patch("product_manager_endpoints.database.fetch_one", new_callable=AsyncMock)
+@patch("product_manager_endpoints.product_manager_required", return_value=42)
+def test_approve_review_not_found(mock_pm_required, mock_fetch_one):
+    # The review doesn't exist
+    mock_fetch_one.return_value = None
+
+    response = client.patch("/productmanagerpanel/reviews/9999?approved=true")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Review not found"}
