@@ -144,3 +144,20 @@ class Invoice(Base):
 
     def __repr__(self):
         return f"<Invoice(invoice_number={self.invoice_number}, order_id={self.orderid})>"
+
+
+# models.py (example addition at the bottom of the file)
+
+class Delivery(Base):
+    __tablename__ = 'deliveries'
+
+    deliveryid = Column(Integer, primary_key=True, autoincrement=True)
+    orderid = Column(Integer, ForeignKey('orders.orderid'), nullable=False)
+    status = Column(String(50), nullable=False)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+
+    # Relationship back to orders
+    order = relationship("Order")
+
+    def __repr__(self):
+        return f"<Delivery(delivery_id={self.deliveryid}, orderid={self.orderid}, status={self.status})>"

@@ -27,6 +27,7 @@ class ProductResponse(BaseModel):
     soldamount: int
     discountprice: Optional[float]
     image: str
+    averagerating : float
 
 # Endpoint to get products by category ID
 @router.get("/products/category/{category_id}/", response_model=List[ProductResponse])

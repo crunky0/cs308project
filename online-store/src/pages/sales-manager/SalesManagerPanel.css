@@ -1,0 +1,65 @@
+.sales-manager-panel {
+    max-width: 100%;
+    margin: 0 auto;
+    margin-top: 100px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .sales-manager-header {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #343a40;
+  }
+  
+  .sales-manager-nav {
+    width: 100%;
+    padding-top: 15px;
+  }
+  
+  .sales-manager-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    align-items: center;
+  }
+  
+  .sales-manager-link {
+    width: 100%;
+    max-width: 400px;    display: block;
+    padding: 12px 20px;
+    color: white;
+    background-color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+  }
+  
+  .sales-manager-link:hover {
+    background-color: #0056b3;
+  }
+  
+  .sales-manager-content {
+    margin-top: 80px;
+    padding: 20px;
+    width: 100%;
+    flex: 1;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: auto;
+    min-height: calc(100vh - 180px);
+    box-sizing: border-box;
+  }
+  

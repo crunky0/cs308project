@@ -26,6 +26,7 @@ class ProductCreate(BaseModel):
     distributerinfo: str
     warranty: str
     price: float
+    cost: float
     stock: int
     categoryid: int
     soldamount: int

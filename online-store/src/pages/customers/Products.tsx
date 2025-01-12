@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/customer/layout/Navbar';
 import ProductCard from '../../components/products/ProductCard';
+import { useAuth } from '../../context/AuthContext';
 import './Products.css';
 
 // Interface definitions
@@ -10,9 +11,9 @@ interface Product {
   productid: number;
   productname: string;
   price: number;
-  discountPrice?: number;
+  discountprice?: number;
   image: string;
-  averageRating?: number; // Average rating for display
+  averagerating: number; // Average rating for display
   stock: number;
 }
 
@@ -41,10 +42,60 @@ const Products = () => {
   const [showLeftScroll, setShowLeftScroll] = useState(false);
   const [showRightScroll, setShowRightScroll] = useState(true);
   const [loading, setLoading] = useState<boolean>(false);
+  const [wishlist, setWishlist] = useState<number[]>([]);
   const [sortBy, setSortBy] = useState<string>('popular'); // Default sort
   const [filters, setFilters] = useState<{ [key: string]: string | number | boolean }>({});
   const [searchMode, setSearchMode] = useState<'name' | 'description'>('name');
+  const { user } = useAuth(); // Dynamically retrieve user
 
+  const fetchWishlist = useCallback(async () => {
+    if (!user || !user.userid) {
+      console.error("User ID is not available.");
+      return;
+    }
+  
+    try {
+      const response = await fetch(`http://localhost:8000/wishlist/${user.userid}`);
+      if (!response.ok) throw new Error('Failed to fetch wishlist');
+      const wishlistData = await response.json();
+      setWishlist(wishlistData.map((item: { productid: number }) => item.productid));
+    } catch (error) {
+      console.error('Error fetching wishlist:', error);
+    }
+  }, [user]);
+  
+
+  const toggleWishlist = async (productid: number) => {
+    if (!user || !user.userid) {
+      console.error("User not logged in. Cannot toggle wishlist.");
+      return; // Exit if the user is not logged in
+    }
+  
+    try {
+      if (wishlist.includes(productid)) {
+        // Remove from wishlist
+        const response = await fetch('http://localhost:8000/wishlist/remove', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userid: user.userid, productid }),
+        });
+        if (!response.ok) throw new Error('Failed to remove from wishlist');
+        setWishlist((prev) => prev.filter((id) => id !== productid));
+      } else {
+        // Add to wishlist
+        const response = await fetch('http://localhost:8000/wishlist/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userid: user.userid, productid }),
+        });
+        if (!response.ok) throw new Error('Failed to add to wishlist');
+        setWishlist((prev) => [...prev, productid]);
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+    }
+  };
+  
   
   const fetchProductsByCategory = async (categoryId: number) => {
     setLoading(true);
@@ -64,40 +115,21 @@ const Products = () => {
   
       let data = await response.json();
   
-      // Fetch and add ratings to products
-      const productsWithRatings = await Promise.all(
-        data.map(async (product: Product) => {
-          try {
-            const ratingResponse = await fetch(
-              `http://localhost:8000/products/${product.productid}/average-rating/`
-            );
-            const averageRating = ratingResponse.ok
-              ? await ratingResponse.json()
-              : null;
-  
-            return { ...product, averageRating };
-          } catch (error) {
-            console.error(`Error fetching rating for product ${product.productid}:`, error);
-            return { ...product, averageRating: null };
-          }
-        })
-      );
+      // Use averagerating from the API response directly
+      setFilteredProducts(data);
 
-
-      
-  
       // Sort products
       if (sortBy === 'priceLowHigh') {
-        productsWithRatings.sort((a, b) => a.price - b.price);
+        data.sort((a: Product, b: Product) => a.price - b.price);
       } else if (sortBy === 'priceHighLow') {
-        productsWithRatings.sort((a, b) => b.price - a.price);
+        data.sort((a: Product, b: Product) => b.price - a.price);
       } else if (sortBy === 'ratingHighToLow') {
-        productsWithRatings.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
+        data.sort((a: Product, b: Product) => (b.averagerating || 0) - (a.averagerating || 0));
       } else if (sortBy === 'ratingLowToHigh') {
-        productsWithRatings.sort((a, b) => (a.averageRating || 0) - (b.averageRating || 0));
-      }
+        data.sort((a: Product, b: Product) => (a.averagerating || 0) - (b.averagerating || 0));
+      }      
   
-      setFilteredProducts(productsWithRatings);
+      setFilteredProducts(data);
     } catch (error) {
       console.error('Error fetching products:', error);
       setFilteredProducts([]);
@@ -155,9 +187,9 @@ const Products = () => {
       } else if (sortBy === 'priceHighLow') {
         combinedResults.sort((a, b) => b.price - a.price);
       } else if (sortBy === 'ratingHighToLow') {
-        combinedResults.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
+        combinedResults.sort((a, b) => (b.averagerating || 0) - (a.averagerating || 0));
       } else if (sortBy === 'ratingLowToHigh') {
-        combinedResults.sort((a, b) => (a.averageRating || 0) - (b.averageRating || 0));
+        combinedResults.sort((a, b) => (a.averagerating || 0) - (b.averagerating || 0));
       }
   
       setFilteredProducts(combinedResults);
@@ -178,6 +210,9 @@ const Products = () => {
     }
   }, []);
 
+  useEffect(() => {
+    fetchWishlist();
+  }, [fetchWishlist]);
 
   useEffect(() => {
     fetchProductsByCategory(activeCategory);
@@ -271,7 +306,9 @@ const Products = () => {
             filteredProducts.map((product) => (
               <ProductCard 
                 key={product.productid} 
-                {...product} 
+                {...product}
+                isInWishlist={wishlist.includes(product.productid)} // Pass wishlist status
+                updateWishlist={(productid: number) => toggleWishlist(productid)} // Pass toggle function
                 onClick={() => navigate(`/product/${product.productid}`)} // Navigate to details page
               />
             ))

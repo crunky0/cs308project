@@ -1,0 +1,86 @@
+/* Navbar styles */
+.pm-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+  }
+  
+  /* Navbar content layout */
+  .pm-nav-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+  }
+  
+  /* Logo section */
+  .pm-nav-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .pm-logo {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .pm-logo-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: black;
+  }
+  
+  /* Right section */
+  .pm-nav-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    height: 100%;
+  }
+  
+  /* Buttons */
+  .pm-auth-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: white;
+    background-color: #007bff;
+    border: 1px solid #007bff;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    margin: 0;
+    transition: all 0.3s ease;
+  }
+  
+  .pm-auth-button:hover {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .pm-auth-button.pm-logout {
+    background-color: #dc3545;
+    border: 1px solid #dc3545;
+    color: white;
+  }
+  
+  .pm-auth-button.pm-logout:hover {
+    background-color: #c82333;
+    color: white;
+  }
+  
+

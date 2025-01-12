@@ -57,6 +57,23 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
         </div>
 
         <div className="nav-right">
+          {user?.role === 'Product Manager' && (
+              <button
+                className="auth-button"
+                onClick={() => navigate('/product-manager')}
+              >
+                Product Manager Panel
+              </button>
+            )}
+
+            {user?.role === 'Sales Manager' && (
+              <button
+                className="auth-button"
+                onClick={() => navigate('/sales-manager')}
+              >
+                Sales Manager Panel
+              </button>
+            )}
           <Link to="/cart" className="cart-button">
             <span className="material-icons">shopping_cart</span>
             Cart
@@ -84,9 +101,9 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                     <span className="material-icons">receipt_long</span>
                     My Orders
                   </Link>
-                  <Link to="/settings" className="dropdown-item">
-                    <span className="material-icons">settings</span>
-                    Settings
+                  <Link to="/wishlist" className="dropdown-item">
+                    <span className="material-icons">favorite</span>
+                    My Wishlist
                   </Link>
                   <button onClick={handleLogout} className="dropdown-item logout-button">
                     <span className="material-icons">logout</span>

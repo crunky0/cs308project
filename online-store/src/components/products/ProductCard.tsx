@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import React, { useState } from 'react';
 import './ProductCard.css';
 
 // Define props for the ProductCard component
@@ -8,11 +9,13 @@ interface ProductCardProps {
   productid: number;
   productname: string;
   price: number;
-  discountedPrice?: number; // Optional field
+  discountprice?: number; // Optional field
   image: string;
   description?: string;
   stock: number; // Optional field
-  averageRating?: number; // Optional field
+  averagerating: number; // Optional field
+  isInWishlist: boolean; // Passed down from parent
+  updateWishlist: (productid: number) => void; // Function to toggle wishlist
   onClick?: () => void; // Optional field for custom click handler
 }
 
@@ -20,11 +23,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
   productid: id,
   productname: name,
   price,
-  discountedPrice,
+  discountprice,
   image,
   description,
   stock,
-  averageRating,
+  averagerating,
+  isInWishlist,
+  updateWishlist,
   onClick,
 }) => {
   const navigate = useNavigate();
@@ -51,8 +56,24 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }
   };
 
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the card click event from firing
+    if (!user) {
+      alert('Please log in to manage your wishlist.');
+      return;
+    }
+    updateWishlist(id); // Call the parent's updateWishlist function
+  };
+
   return (
     <div className="product-card" onClick={onClick || (() => navigate(`/product/${id}`))}>
+      <div
+        className={`wishlist-button ${isInWishlist ? 'in-wishlist' : ''}`}
+        onClick={handleWishlistToggle}
+      >
+        {isInWishlist ? '♥' : '♡'}
+      </div>
       <img src={image} alt={name} className="product-image" />
       <div className="product-info">
         <h3>{name}</h3>
@@ -60,28 +81,45 @@ const ProductCard: React.FC<ProductCardProps> = ({
         {stock !== undefined && stock !== null && (
           <p className="stock">Stock: {stock}</p>
         )}
-        {averageRating !== undefined && averageRating !== null ? (
+        {averagerating !== undefined && averagerating !== null ? (
           <div className="rating">
-            <span className="stars">
-              {Array.from({ length: 5 }).map((_, index) => {
-                const fullStarThreshold = index + 1;
-                const halfStarThreshold = index + 0.5;
-                if (averageRating >= fullStarThreshold) {
-                  return <span key={index} className="star full">★</span>; // Full star
-                } else if (averageRating >= halfStarThreshold) {
-                  return <span key={index} className="star half">★</span>; // Half star
-                } else {
-                  return <span key={index} className="star empty">★</span>; // Empty star
-                }
-              })}
-            </span>
-            <span className="rating-count">
-              {Number.isInteger(averageRating) 
-                ? averageRating 
-                : averageRating.toFixed(1)
-              }/5
-            </span>
-          </div>
+          <span className="stars">
+            {Array.from({ length: 5 }).map((_, index) => {
+              const fullStarThreshold = index + 1;
+              const partialStarThreshold = index + 0.5;
+        
+              if (averagerating >= fullStarThreshold) {
+                // Full star
+                return <span key={index} className="star full">★</span>;
+              } else if (averagerating > index && averagerating < fullStarThreshold) {
+                // Partial star
+                const fillPercentage = (averagerating - index) * 100; // Calculate percentage to fill
+                return (
+                  <span key={index} className="star partial">
+                    <span
+                      className="partial-fill"
+                      style={{ width: `${fillPercentage}%` }}
+                    >
+                      ★
+                    </span>
+                    <span className="empty-fill">★</span>
+                  </span>
+                );
+              } else {
+                // Empty star
+                return <span key={index} className="star empty">★</span>;
+              }
+            })}
+          </span>
+          <span className="rating-count">
+            {Number.isInteger(averagerating)
+              ? averagerating
+              : averagerating.toFixed(1)
+            }/5
+          </span>
+        </div>
+        
+               
         ) : (
           <div className="rating">
             <span className="stars">{'★'.repeat(5)}</span>
@@ -90,13 +128,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
         )}
         <div className="product-footer">
           <div className="price">
-            {discountedPrice ? (
+            {discountprice ? (
               <>
                 <span className="original-price">${price.toFixed(2)}</span>
-                <span className="discounted-price">${discountedPrice.toFixed(2)}</span>
+                <span className="discounted-price">${discountprice.toFixed(2)}</span>
               </>
             ) : (
-              <span>${price.toFixed(2)}</span>
+              <span className="price">${price.toFixed(2)}</span>
             )}
           </div>
           <button 

@@ -1,0 +1,117 @@
+/* Scoped Container */
+.approve-comments-container {
+    font-family: 'Arial', sans-serif;
+    background-color: #f9f9f9;
+    padding: 20px;
+  }
+  
+  .approve-comments-container h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .approve-comments-container .error {
+    color: red;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  
+  /* Reviews List Styling */
+  .approve-comments-container ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+  }
+  
+  /* Individual Review Card */
+  .approve-comments-container li {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .approve-comments-container li p {
+    margin: 10px 0;
+    font-size: 14px;
+    color: #555;
+  }
+  
+  .approve-comments-container li p strong {
+    color: #333;
+  }
+  
+  /* Buttons with Icons */
+  .approve-comments-container button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 15px;
+    margin-top: 10px;
+    font-size: 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+    text-align: center;
+    transition: background-color 0.3s ease;
+  }
+  
+  .approve-comments-container button:hover {
+    opacity: 0.9;
+  }
+  
+  /* Approve Button */
+  .approve-comments-container .approve-btn {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .approve-comments-container .approve-btn:hover {
+    background-color: #45a049;
+  }
+  
+  /* Delete Button */
+  .approve-comments-container .delete-btn {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .approve-comments-container .delete-btn:hover {
+    background-color: #e53935;
+  }
+  
+  /* Material Icons Styling */
+  .approve-comments-container button .material-icons {
+    font-size: 18px;
+    vertical-align: middle;
+  }
+  
+  /* Loading Message */
+  .approve-comments-container p.loading {
+    text-align: center;
+    font-size: 16px;
+    color: #555;
+    margin-top: 20px;
+  }
+  
+  /* Product Image Styling */
+.approve-comments-product-image {
+    max-width: 100%;
+    height: auto;
+    margin-top: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  

@@ -1,31 +1,43 @@
-import { useState } from 'react';
+import { useState , useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './Login.css';
 
 const Login = () => {
+  const { login, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-
+  
     try {
-      await login(email, password); // Calls the updated login function from AuthContext
-      navigate('/products'); // Redirects to the products page on successful login
+      await login(email, password);
     } catch (err: any) {
-      setError(err.message || 'Invalid credentials'); // Displays error if login fails
+      setError(err.message || 'Invalid credentials');
     } finally {
       setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    // Trigger navigation when user changes
+    if (user) {
+      if (user.role === 'Product Manager') {
+        navigate('/product-manager');
+      } else if (user.role === 'Sales Manager') {
+        navigate('/sales-dashboard');
+      } else {
+        navigate('/products');
+      }
+    }
+  }, [user, navigate]);
+  
   return (
     <div className="login-container">
       <div className="login-box">

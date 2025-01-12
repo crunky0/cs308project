@@ -26,21 +26,36 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ onSubmit }) => {
       <h3>Write a Review</h3>
       
       <div className="rating-input">
-        <p>Rate this product:</p>
-        <div className="stars-input">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <span
-              key={star}
-              className={`star ${star <= (hoveredStar || rating) ? 'active' : ''}`}
-              onClick={() => setRating(star)}
-              onMouseEnter={() => setHoveredStar(star)}
-              onMouseLeave={() => setHoveredStar(0)}
-            >
-              ★
-            </span>
-          ))}
-        </div>
-      </div>
+  <p>Rate this product:</p>
+  <div className="stars-input">
+    {Array.from({ length: 5 }).map((_, index) => {
+      const fullValue = index + 1; // Value for full star
+      const halfValue = index + 0.5; // Value for half star
+
+      return (
+        <span
+          key={index}
+          className={`star ${
+            hoveredStar >= fullValue || rating >= fullValue
+              ? 'full'
+              : hoveredStar >= halfValue || rating >= halfValue
+              ? 'half'
+              : 'empty'
+          }`}
+          onClick={() =>
+            setRating(hoveredStar >= halfValue && hoveredStar < fullValue ? halfValue : fullValue)
+          }
+          onMouseEnter={() =>
+            setHoveredStar(hoveredStar >= halfValue && hoveredStar < fullValue ? halfValue : fullValue)
+          }
+          onMouseLeave={() => setHoveredStar(0)}
+        >
+          ★
+        </span>
+      );
+    })}
+  </div>
+</div>
 
       <div className="comment-input">
         <textarea
