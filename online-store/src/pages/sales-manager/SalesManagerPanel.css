@@ -1,35 +1,29 @@
-/* Main container for the panel */
-.sm-panel {
+.sales-manager-panel {
     max-width: 100%;
     margin: 0 auto;
     margin-top: 100px;
     padding: 20px;
-    background-color: #eef1f6;
+    background-color: #f8f9fa;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-/* Header styling */
-.sm-header {
+  }
+  
+  .sales-manager-header {
     text-align: center;
-    margin-bottom: 30px;
-}
-
-.sm-header h1 {
     font-size: 2rem;
     font-weight: bold;
-    color: #2c3e50;
-}
-
-/* Navigation menu */
-.sm-nav {
+    color: #343a40;
+  }
+  
+  .sales-manager-nav {
     width: 100%;
-}
-
-.sm-menu {
+    padding-top: 15px;
+  }
+  
+  .sales-manager-menu {
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -37,31 +31,26 @@
     padding: 0;
     margin: 0;
     align-items: center;
-}
-
-.sm-menu li {
+  }
+  
+  .sales-manager-link {
     width: 100%;
-    max-width: 400px;
-}
-
-.sm-link {
-    display: block;
+    max-width: 400px;    display: block;
     padding: 12px 20px;
     color: white;
-    background-color: #28a745;
+    background-color: #007bff;
     text-decoration: none;
     font-weight: bold;
     text-align: center;
     border-radius: 8px;
     transition: background-color 0.3s;
-}
-
-.sm-link:hover {
-    background-color: #218838;
-}
-
-/* Main content area */
-.sm-content {
+  }
+  
+  .sales-manager-link:hover {
+    background-color: #0056b3;
+  }
+  
+  .sales-manager-content {
     margin-top: 80px;
     padding: 20px;
     width: 100%;
@@ -72,8 +61,5 @@
     overflow: auto;
     min-height: calc(100vh - 180px);
     box-sizing: border-box;
-}
-
-.sm-content:empty {
-    display: none;
-}
+  }
+  
