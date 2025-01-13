@@ -12,6 +12,7 @@ invoice_service = InvoiceService()
 class UserInfo(BaseModel):
     name: str
     email: str
+    homeaddress: str  # Added to include user address in the invoice
 
 class Item(BaseModel):
     name: str
@@ -19,6 +20,7 @@ class Item(BaseModel):
     price: float
 
 class InvoiceRequest(BaseModel):
+    orderid: int  # Added to use orderid for naming invoices
     user_info: UserInfo
     items: List[Item]
     total_amount: float
@@ -26,11 +28,11 @@ class InvoiceRequest(BaseModel):
 @router.post("/generate-invoice")
 async def generate_invoice(request: InvoiceRequest):
     try:
-        # Generate unique invoice number and date
-        invoice_number = f"INV-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        # Use orderid for invoice number
+        invoice_number = f"INV-{request.orderid}"
         invoice_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        # Create HTML content for the invoice
+        # Create HTML content for the invoice, including the home address
         html_content = invoice_service._create_invoice_html(
             invoice_number=invoice_number,
             invoice_date=invoice_date,
@@ -39,7 +41,7 @@ async def generate_invoice(request: InvoiceRequest):
             total_amount=request.total_amount
         )
 
-        # Generate the PDF invoice
+        # Generate the PDF invoice using the updated naming convention
         file_path = invoice_service.generate_invoice(html_content, invoice_number)
         return {"message": "Invoice generated successfully", "file_path": file_path}
     except Exception as e:

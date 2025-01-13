@@ -1,10 +1,14 @@
 from fastapi import APIRouter, HTTPException,Query
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List,Dict,Any
 from db import database
 from mailing_service import MailingService
 from datetime import datetime
 import os
+from fastapi.responses import FileResponse
+from refund_process import RefundService  
+from refund_endpoint import RefundRequest, RefundDecision ,RefundResponse
+from matplotlib import pyplot as plt
 from fastapi.responses import FileResponse
 
 # Initialize router and mailing service
@@ -205,21 +209,20 @@ async def download_invoice(invoice_name: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/profit_loss_chart", response_model=List[RevenueProfitLossChart])
-async def get_revenue_and_profit_loss_chart(
+@router.get("/profit_loss_chart_image")
+async def generate_profit_loss_chart_image(
     start_date: datetime = Query(..., description="Start date in YYYY-MM-DD format"),
     end_date: datetime = Query(..., description="End date in YYYY-MM-DD format"),
 ):
     """
-    Calculates revenue and profit/loss for each day in a given date range.
-    Returns the results grouped by date for chart rendering.
+    Generate a chart of revenue and profit/loss for the given date range and return as an image.
     """
     try:
-        # Validate date range
+        # Step 1: Validate date range
         if start_date > end_date:
             raise HTTPException(status_code=400, detail="Start date must be before end date.")
 
-        # Query to calculate revenue and profit/loss grouped by orderdate
+        # Step 2: Fetch data from the database
         query = """
             SELECT 
                 DATE(o.orderdate) AS date,
@@ -242,18 +245,242 @@ async def get_revenue_and_profit_loss_chart(
             GROUP BY DATE(o.orderdate)
             ORDER BY DATE(o.orderdate)
         """
-
         rows = await database.fetch_all(query, {"start_date": start_date, "end_date": end_date})
 
-        # Format results for the chart
-        return [
-            {
-                "date": row["date"].isoformat(),
-                "revenue": float(row["revenue"]),
-                "profit_loss": float(row["profit_loss"]),
-            }
-            for row in rows
-        ]
+        if not rows:
+            raise HTTPException(status_code=404, detail="No data found for the given date range.")
+
+        # Step 3: Prepare data for the chart
+        dates = [row["date"] for row in rows]
+        revenue = [row["revenue"] for row in rows]
+        profit_loss = [row["profit_loss"] for row in rows]
+
+        # Step 4: Generate the chart
+        plt.figure(figsize=(10, 6))
+        plt.plot(dates, revenue, label="Revenue", marker="o", color="blue")
+        plt.plot(dates, profit_loss, label="Profit/Loss", marker="x", color="green")
+        plt.xlabel("Date")
+        plt.ylabel("Amount")
+        plt.title("Revenue and Profit/Loss Over Time")
+        plt.xticks(rotation=45)
+        plt.legend()
+        plt.tight_layout()
+
+        # Step 5: Save the chart as an image
+        chart_path = "chart.png"
+        plt.savefig(chart_path)
+        plt.close()
+
+        # Step 6: Return the chart as a response
+        return FileResponse(chart_path, media_type="image/png", filename="profit_loss_chart.png")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@router.get("/refunds/pending", response_model=List[Dict[str, int]])
+async def view_pending_refunds():
+    """
+    View all pending refund requests.
+    """
+    try:
+        query = """
+            SELECT orderid, productid, quantity
+            FROM refund_requests
+        """
+        refunds = await database.fetch_all(query)
+        return [dict(refund) for refund in refunds]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch pending refunds: {str(e)}")
+refund_service = RefundService(database)
+
+@router.post("/refunds/process", response_model=Dict[str, str])
+async def process_refund(decision: RefundDecision):
+    """
+    Process a refund request (approve or deny).
+    """
+    try:
+        if decision.approved:
+            # Approve the refund and update stock
+            await refund_service.process_refund(decision.orderid)
+            return {"message": "Refund approved successfully."}
+        else:
+            # Deny the refund and remove the request
+            query = """
+                DELETE FROM refund_requests
+                WHERE orderid = :orderid
+            """
+            await database.execute(query, {"orderid": decision.orderid})
+            return {"message": "Refund denied successfully."}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to process refund: {str(e)}")
+
+@router.post("/refund/decision", response_model=RefundResponse)
+async def manager_decision(decision: RefundDecision):
+    """
+    Endpoint for the Sales Manager to evaluate and process a refund decision.
+    """
+    try:
+        if decision.approved:
+            # Fetch pending refund request details for the order
+            query = """
+                SELECT productid, quantity
+                FROM refund_requests
+                WHERE orderid = :orderid
+            """
+            product_quantities = await database.fetch_all(query, {"orderid": decision.orderid})
+            
+            if not product_quantities:
+                raise HTTPException(status_code=404, detail="No refund request found for this order.")
+            
+            # Convert to a list of dictionaries
+            product_quantities = [dict(product) for product in product_quantities]
+
+            # Process the refund
+            refunded_amount = await refund_service.process_refund(decision.orderid, product_quantities)
+
+            # Notify the customer via email
+            user_info = await database.fetch_one(
+                "SELECT name, email FROM users WHERE userid = (SELECT userid FROM orders WHERE orderid = :orderid)",
+                {"orderid": decision.orderid},
+            )
+            if not user_info:
+                raise HTTPException(status_code=404, detail="User not found")
+
+            email_subject = f"Refund Processed for Order {decision.orderid}"
+            email_body = f"""
+            <html>
+            <body>
+                <p>Dear {user_info['name']},</p>
+                <p>Your refund request for Order #{decision.orderid} has been approved.</p>
+                <p>Refunded Amount: ${refunded_amount:.2f}</p>
+                <p>Thank you for your understanding. Feel free to reach out for further assistance.</p>
+                <p>Best regards,<br>Your Store Team</p>
+            </body>
+            </html>
+            """
+            mailing_service.send_email(user_info["email"], email_subject, email_body)
+
+            return RefundResponse(
+                orderid=decision.orderid,
+                refunded_amount=refunded_amount,
+                status="Refunded",
+            )
+        else:
+            # Deny refund logic
+            await refund_service.deny_refund(decision.orderid)
+
+            # Notify the customer about the denial
+            user_info = await database.fetch_one(
+                "SELECT name, email FROM users WHERE userid = (SELECT userid FROM orders WHERE orderid = :orderid)",
+                {"orderid": decision.orderid},
+            )
+            if not user_info:
+                raise HTTPException(status_code=404, detail="User not found")
+
+            email_subject = f"Refund Processed for Order {decision.orderid}"
+            email_body = f"""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Refund Processed</title>
+                <style>
+                    body {{
+                        font-family: Arial, sans-serif;
+                        margin: 0;
+                        padding: 20px;
+                        background-color: #f9f9f9;
+                        color: #333;
+                    }}
+                    .container {{
+                        max-width: 600px;
+                        margin: 20px auto;
+                        background: #ffffff;
+                        padding: 20px;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                    }}
+                    .header {{
+                        text-align: center;
+                        padding: 10px 0;
+                        border-bottom: 2px solid #4CAF50;
+                    }}
+                    .header h1 {{
+                        margin: 0;
+                        font-size: 24px;
+                        color: #4CAF50;
+                    }}
+                    .content {{
+                        margin: 20px 0;
+                    }}
+                    .content p {{
+                        margin: 8px 0;
+                        line-height: 1.6;
+                    }}
+                    .table {{
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 20px 0;
+                    }}
+                    .table th, .table td {{
+                        border: 1px solid #ddd;
+                        padding: 10px;
+                        text-align: left;
+                    }}
+                    .table th {{
+                        background-color: #f2f2f2;
+                    }}
+                    .footer {{
+                        text-align: center;
+                        margin-top: 20px;
+                        font-size: 14px;
+                        color: #777;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>Refund Confirmation</h1>
+                    </div>
+                    <div class="content">
+                        <p>Dear <strong>{user_name}</strong>,</p>
+                        <p>Your refund request for <strong>Order #{decision.orderid}</strong> has been successfully processed. Here are the details of the refund:</p>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Quantity</th>
+                                    <th>Refunded Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {''.join(f"<tr><td>{product['productname']}</td><td>{product['quantity']}</td><td>${product['price']:.2f}</td></tr>" for product in products)}
+                            </tbody>
+                        </table>
+                        <p><strong>Total Refunded Amount:</strong> ${refunded_amount:.2f}</p>
+                        <p>Refunded to your account: <strong>{email}</strong></p>
+                    </div>
+                    <div class="footer">
+                        <p>Thank you for shopping with us!</p>
+                        <p><em>Your Store Team</em></p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+            mailing_service.send_email(user_info["email"], email_subject, email_body)
+
+            return RefundResponse(
+                orderid=decision.orderid,
+                refunded_amount=0.0,
+                status="Denied",
+            )
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -55,8 +55,7 @@ class InvoiceService:
         Generate the PDF invoice from the given HTML content.
         """
         try:
-            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-            file_name = f"INV-{timestamp}.pdf"  # Updated to include timestamp
+            file_name = f"{invoice_number}.pdf"  # Use the provided invoice number directly
             file_path = os.path.join(self.output_dir, file_name)
             pdfkit.from_string(html_content, file_path, configuration=self.pdfkit_config)
             logger.info(f"Invoice PDF generated successfully: {file_path}")
@@ -158,6 +157,7 @@ class InvoiceService:
                     <p><strong>Invoice Date:</strong> {invoice_date}</p>
                     <p><strong>Customer Name:</strong> {user_info.get('name')}</p>
                     <p><strong>Customer Email:</strong> {user_info.get('email')}</p>
+                    <p><strong>Customer Address:</strong> {user_info.get('homeaddress')}</p>
                 </div>
 
                 <!-- Items Table -->
