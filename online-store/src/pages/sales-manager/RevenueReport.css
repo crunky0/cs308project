@@ -13,7 +13,65 @@
     margin: 10px;
     padding: 8px;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 4px;.revenue-page-container {
+      padding: 20px;
+      font-family: 'Arial', sans-serif;
+      background-color: #f9f9f9;
+    }
+    
+    .revenue-page-container h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .date-inputs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .date-inputs label {
+      font-weight: bold;
+    }
+    
+    .date-inputs input {
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+    
+    button {
+      display: block;
+      margin: 0 auto;
+      padding: 10px 20px;
+      font-size: 16px;
+      color: white;
+      background-color: #4caf50;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    
+    button:hover {
+      background-color: #45a049;
+    }
+    
+    .chart-container {
+      margin-top: 20px;
+      width: 600px;
+      height: 400px;
+      text-align: center;
+    }
+
+    .chart-container img {
+      width: 80%;
+      max-width: 800px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
   }
   
   .revenue-report-container button {

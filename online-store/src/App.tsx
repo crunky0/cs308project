@@ -74,12 +74,11 @@ function App() {
               {/* PM routes - add a prefix to distinguish them */}
             <Route
               path="/sales-manager"
-              /*element={
+              element={
                 <ProtectedRoute allowedRoles={['Sales Manager']}>
                   <ProductManagerPanel />
                 </ProtectedRoute>
-              }*/
-                element={<SalesManagerPanel />}
+              }
               
             >
               <Route path="products" element={<ManageSales />} />
