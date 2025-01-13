@@ -22,7 +22,9 @@ class PriceUpdate(BaseModel):
 
 class DiscountUpdate(BaseModel):
     productid: int
-    discount_price: float = Field(gt=0, description="Discount must be greater than 0")
+    discount_price: float = Field(default=None, gt=0, description="Manually calculated discounted price ")
+    discount_rate: float = Field(default=None, gt=0, lt=100, description="Discount rate as a percentage ")
+
 
 class CostUpdate(BaseModel):
     productid: int
@@ -41,10 +43,27 @@ class RevenueProfitLossChart(BaseModel):
 # Set product price
 @router.put("/set_price")
 async def set_price(update: PriceUpdate):
-    query = "UPDATE products SET price = :new_price WHERE productid = :productid"
-    values = {"productid": update.productid, "new_price": update.new_price}
-    await database.execute(query, values)
-    return {"message": "Price updated successfully"}
+    """
+    Update the price of a product and automatically adjust its cost to 50% of the new price.
+    """
+    try:
+        # Calculate the cost as 50% of the new price
+        new_cost = update.new_price * 0.5
+
+        # Update both price and cost in the database
+        query = """
+        UPDATE products 
+        SET price = :new_price, 
+            cost = :new_cost 
+        WHERE productid = :productid
+        """
+        values = {"productid": update.productid, "new_price": update.new_price, "new_cost": new_cost}
+        await database.execute(query, values)
+
+        return {"message": "Price and cost updated successfully", "new_price": update.new_price, "new_cost": new_cost}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update price and cost: {str(e)}")
+
 
 @router.put("/set_discounts_and_notify")
 async def set_discounts_and_notify(updates: List[DiscountUpdate]):
@@ -52,12 +71,41 @@ async def set_discounts_and_notify(updates: List[DiscountUpdate]):
     Apply discounts to multiple products and notify users with those products in their wishlist.
     """
     try:
-        # Step 1: Update discount prices for all specified products
         for update in updates:
-            query = "UPDATE products SET discountprice = :discount_price WHERE productid = :productid"
-            await database.execute(query, {"productid": update.productid, "discount_price": update.discount_price})
+            # Validate input: either `discount_rate` or `discount_price` must be provided, but not both
+            if update.discount_rate is None and update.discount_price is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Either discount_rate or discount_price must be provided."
+                )
+            if update.discount_rate is not None and update.discount_price is not None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Provide either discount_rate or discount_price, not both."
+                )
 
-        # Step 2: Fetch all users with discounted products in their wishlist
+            # Fetch the product price for rate-based discount calculation
+            if update.discount_rate is not None:
+                query = "SELECT price FROM products WHERE productid = :productid"
+                product = await database.fetch_one(query, {"productid": update.productid})
+                if not product:
+                    raise HTTPException(status_code=404, detail=f"Product ID {update.productid} not found.")
+
+                # Cast `price` to `float` for calculations
+                product_price = float(product["price"])
+                
+                # Calculate discounted price
+                calculated_discount_price = product_price * (1 - update.discount_rate / 100)
+            else:
+                # Use the manually provided `discount_price`
+                calculated_discount_price = update.discount_price
+
+
+            # Update the product with the calculated discount price
+            update_query = "UPDATE products SET discountprice = :discount_price WHERE productid = :productid"
+            await database.execute(update_query, {"productid": update.productid, "discount_price": calculated_discount_price})
+
+        # Fetch and notify users about the discounts
         product_ids = [update.productid for update in updates]
         wishlist_query = f"""
         SELECT u.userid, u.email, u.name, p.productname, p.price, p.discountprice
@@ -71,7 +119,7 @@ async def set_discounts_and_notify(updates: List[DiscountUpdate]):
         if not users:
             return {"message": "Discounts applied successfully, but no users to notify."}
 
-        # Step 3: Aggregate discounted products per user
+        # Aggregate notifications by user
         user_notifications = {}
         for user in users:
             userid = user["userid"]
@@ -87,13 +135,12 @@ async def set_discounts_and_notify(updates: List[DiscountUpdate]):
                 "discounted_price": user["discountprice"]
             })
 
-        # Step 4: Notify each user about all discounted products in their wishlist
+        # Notify users
         for user_data in user_notifications.values():
             email = user_data["email"]
             name = user_data["name"]
             products = user_data["products"]
 
-            # Construct email body
             product_details = "".join([
                 f"<p><strong>{product['productname']}</strong><br>"
                 f"Original Price: ${product['original_price']:.2f}<br>"
@@ -112,7 +159,6 @@ async def set_discounts_and_notify(updates: List[DiscountUpdate]):
             </html>
             """
 
-            # Send email
             mailing_service.send_email(
                 recipient_email=email,
                 subject="Discount Alert: Wishlist Products",
@@ -123,6 +169,7 @@ async def set_discounts_and_notify(updates: List[DiscountUpdate]):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
 # Set product cost
@@ -186,36 +233,14 @@ async def fetch_invoices(start_date: datetime, end_date: datetime) -> List[str]:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# Download a specific invoice
-@router.get("/invoices/{invoice_name}")
-async def download_invoice(invoice_name: str):
-    """
-    Download a specific invoice file by its name.
-    """
-    try:
-        # Construct the full file path
-        file_path = os.path.join(INVOICE_DIR, invoice_name)
-
-        # Check if the file exists
-        if not os.path.exists(file_path):
-            raise HTTPException(status_code=404, detail="Invoice file not found")
-
-        # Return the file for download using FileResponse
-        return FileResponse(
-            path=file_path,
-            media_type="application/pdf",
-            filename=invoice_name
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 @router.get("/profit_loss_chart_image")
 async def generate_profit_loss_chart_image(
     start_date: datetime = Query(..., description="Start date in YYYY-MM-DD format"),
     end_date: datetime = Query(..., description="End date in YYYY-MM-DD format"),
 ):
     """
-    Generate a chart of revenue and profit/loss for the given date range and return as an image.
+    Generate a chart of revenue and profit/loss for the given date range and save it in the `charts` directory.
+    The filename will be based on the date range provided.
     """
     try:
         # Step 1: Validate date range
@@ -266,13 +291,19 @@ async def generate_profit_loss_chart_image(
         plt.legend()
         plt.tight_layout()
 
-        # Step 5: Save the chart as an image
-        chart_path = "chart.png"
+        # Step 5: Save the chart in the `charts` directory
+        chart_directory = "charts"
+        os.makedirs(chart_directory, exist_ok=True)  # Ensure the directory exists
+
+        # Generate a filename based on the date range
+        chart_filename = f"chart_{start_date.strftime('%Y-%m-%d')}_to_{end_date.strftime('%Y-%m-%d')}.png"
+        chart_path = os.path.join(chart_directory, chart_filename)
+
         plt.savefig(chart_path)
         plt.close()
 
-        # Step 6: Return the chart as a response
-        return FileResponse(chart_path, media_type="image/png", filename="profit_loss_chart.png")
+        # Step 6: Return the saved chart path
+        return FileResponse(chart_path, media_type="image/png", filename=chart_filename)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
