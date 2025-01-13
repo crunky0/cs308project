@@ -31,7 +31,7 @@ const Login = () => {
       if (user.role === 'Product Manager') {
         navigate('/product-manager');
       } else if (user.role === 'Sales Manager') {
-        navigate('/sales-dashboard');
+        navigate('/sales-panel');
       } else {
         navigate('/products');
       }

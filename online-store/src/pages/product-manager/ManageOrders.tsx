@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import './ManageOrders.css';
-
+import "./ManageOrders.css";
 
 interface Order {
   orderid: number;
@@ -24,24 +23,28 @@ interface ProductDetails {
 }
 
 interface Delivery {
-    deliveryid: number;
-    orderid: number;
-    productid: number;
-    quantity: number;
-    status: string;
-    productDetails?: ProductDetails; // Add product details for deliveries
+  deliveryid: number;
+  orderid: number;
+  customerid: number;
+  productid: number;
+  quantity: number;
+  status: string;
+  productDetails?: ProductDetails;
 }
 
 const ManageOrders: React.FC = () => {
-  const [processingOrders, setProcessingOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [error, setError] = useState("");
-  
+  const [filter, setFilter] = useState<string>("processing");
 
   useEffect(() => {
-    fetchProcessingOrders();
-    fetchDeliveries();
-  }, []);
+    if (filter === "processing") {
+      fetchProcessingOrders();
+    } else {
+      fetchDeliveries(filter);
+    }
+  }, [filter]);
 
   const fetchProcessingOrders = async () => {
     try {
@@ -49,7 +52,6 @@ const ManageOrders: React.FC = () => {
       if (!response.ok) throw new Error("Failed to fetch orders");
       const data = await response.json();
 
-      // Fetch product details for each order item
       const ordersWithDetails = await Promise.all(
         data.map(async (order: Order) => ({
           ...order,
@@ -62,21 +64,22 @@ const ManageOrders: React.FC = () => {
         }))
       );
 
-      setProcessingOrders(ordersWithDetails || []);
+      setOrders(ordersWithDetails || []);
     } catch (err) {
       setError("Failed to load orders.");
     }
   };
 
-  const fetchDeliveries = async () => {
+  const fetchDeliveries = async (status: string) => {
     try {
       const response = await fetch("http://localhost:8000/productmanagerpanel/deliveries");
       if (!response.ok) throw new Error("Failed to fetch deliveries");
       const data = await response.json();
 
-      // Fetch product details for each delivery item
+      const filteredDeliveries = data.deliveries.filter((delivery: Delivery) => delivery.status === status);
+
       const deliveriesWithDetails = await Promise.all(
-        data.deliveries.map(async (delivery: Delivery) => ({
+        filteredDeliveries.map(async (delivery: Delivery) => ({
           ...delivery,
           productDetails: await fetchProductDetails(delivery.productid),
         }))
@@ -101,7 +104,7 @@ const ManageOrders: React.FC = () => {
 
   const handleStartShipment = async (orderid: number) => {
     try {
-      await fetch(`http://localhost:8000/productmanagerpanel/deliveries/create`, {
+      await fetch("http://localhost:8000/productmanagerpanel/deliveries/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderid }),
@@ -113,7 +116,7 @@ const ManageOrders: React.FC = () => {
       });
 
       fetchProcessingOrders();
-      fetchDeliveries();
+      fetchDeliveries(filter);
     } catch (err) {
       setError("Failed to start shipment.");
     }
@@ -126,7 +129,7 @@ const ManageOrders: React.FC = () => {
         headers: { "Content-Type": "application/json" },
       });
 
-      fetchDeliveries();
+      fetchDeliveries(filter);
     } catch (err) {
       setError("Failed to finish delivery.");
     }
@@ -134,81 +137,94 @@ const ManageOrders: React.FC = () => {
 
   return (
     <div className="manage-orders-container">
-  <h1>Manage Orders</h1>
-  {error && <p className="error">{error}</p>}
-  <div className="orders-deliveries-wrapper">
+      <h1>Manage Orders</h1>
+      {error && <p className="error">{error}</p>}
 
-  <section className="orders">
-    <h2>Unshipped Orders</h2>
-    {processingOrders.length > 0 ? (
-      processingOrders.map((order) => (
-        <div key={order.orderid} className="order-card">
-          <h3>Order ID: {order.orderid}</h3>
-          <p>User ID: {order.userid}</p>
-          <p>Total Amount: ${order.totalamount.toFixed(2)}</p>
-          <p>Order Date: {new Date(order.orderdate).toLocaleDateString()}</p>
-          <div className="order-items">
-            {order.items.map((item, index) => (
-              <div key={index} className="order-item">
-                <img
-                  src={item.productDetails?.image}
-                  alt={item.productDetails?.productname}
-                />
-                <p>{item.productDetails?.productname}</p>
-                <p>Price: ${item.productDetails?.price.toFixed(2)}</p>
-                <p>Quantity: {item.quantity}</p>
-              </div>
-            ))}
-          </div>
+      <div className="filter-buttons">
+        {["processing", "in-transit", "delivered", "refunded"].map((status) => (
           <button
-            onClick={() => handleStartShipment(order.orderid)}
-            className="start-shipment-btn"
+            key={status}
+            className={`filter-btn ${filter === status ? "active" : ""}`}
+            onClick={() => setFilter(status)}
           >
-            Start Shipment
+            {status.charAt(0).toUpperCase() + status.slice(1)}
           </button>
-        </div>
-      ))
-    ) : (
-      <p>No unshipped orders available.</p>
-    )}
-  </section>
+        ))}
+      </div>
 
-  <section className="deliveries">
-    <h2>Deliveries</h2>
-    {deliveries.length > 0 ? (
-      deliveries.map((delivery) => (
-        <div key={delivery.deliveryid} className="delivery-card">
-          <h3>Delivery ID: {delivery.deliveryid}</h3>
-          <p>Order ID: {delivery.orderid}</p>
-          <p>Status: {delivery.status}</p>
-          <div className="delivery-items">
-            <div className="order-item">
-              <img
-                src={delivery.productDetails?.image}
-                alt={delivery.productDetails?.productname}
-              />
-              <p>{delivery.productDetails?.productname}</p>
-              <p>Price: ${delivery.productDetails?.price.toFixed(2)}</p>
-              <p>Quantity: {delivery.quantity}</p>
-            </div>
-          </div>
-          {delivery.status === "in-transit" && (
-            <button
-              onClick={() => handleFinishDelivery(delivery.orderid)}
-              className="finish-delivery-btn"
-            >
-              Finish Delivery
-            </button>
-          )}
-        </div>
-      ))
-    ) : (
-      <p>No deliveries available.</p>
-    )}
-  </section>
-</div>
-</div>
+      <div className="orders-list">
+        {filter === "processing" ? (
+          orders.length > 0 ? (
+            orders.map((order) => (
+              <div key={order.orderid} className="order-card">
+                <h3>Order ID: {order.orderid}</h3>
+                <p>Customer ID: {order.userid}</p>
+                <p>Total Amount: ${order.totalamount.toFixed(2)}</p>
+                <p>Order Date: {new Date(order.orderdate).toLocaleDateString()}</p>
+                <div className="order-items">
+                  {order.items.map((item, index) => (
+                    <div key={index} className="order-item">
+                      <img
+                        src={item.productDetails?.image}
+                        alt={item.productDetails?.productname}
+                      />
+                      <div>
+                        <p>{item.productDetails?.productname}</p>
+                        <p>Product ID: {item.productid}</p>
+                        <p>Price: ${item.productDetails?.price.toFixed(2)}</p>
+                        <p>Quantity: {item.quantity}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => handleStartShipment(order.orderid)}
+                  className="start-shipment-btn"
+                >
+                  Start Shipment
+                </button>
+              </div>
+            ))
+          ) : (
+            <p>No unshipped orders available.</p>
+          )
+        ) : (
+          deliveries.length > 0 ? (
+            deliveries.map((delivery) => (
+              <div key={delivery.deliveryid} className="delivery-card">
+                <h3>Delivery ID: {delivery.deliveryid}</h3>
+                <p>Order ID: {delivery.orderid}</p>
+                <p>Customer ID: {delivery.customerid}</p>
+                <p className="delivery-status">Status: {delivery.status}</p>
+                <div className="order-item">
+                  <img
+                    src={delivery.productDetails?.image}
+                    alt={delivery.productDetails?.productname}
+                  />
+                  <div>
+                    <p>{delivery.productDetails?.productname}</p>
+                    <p>Product ID: {delivery.productid}</p>
+                    <p>Price: ${delivery.productDetails?.price.toFixed(2)}</p>
+                    <p>Quantity: {delivery.quantity}</p>
+                  </div>
+                </div>
+                {delivery.status === "in-transit" && (
+                  <button
+                    onClick={() => handleFinishDelivery(delivery.orderid)}
+                    className="finish-delivery-btn"
+                  >
+                    Finish Delivery
+                  </button>
+                )}
+              </div>
+            ))
+          ) : (
+            <p>No deliveries available for the selected status.</p>
+          )
+        )}
+      </div>
 
+    </div>
   );
 };
 

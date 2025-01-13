@@ -69,7 +69,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
             {user?.role === 'Sales Manager' && (
               <button
                 className="auth-button"
-                onClick={() => navigate('/sales-manager')}
+                onClick={() => navigate('/sales-panel')}
               >
                 Sales Manager Panel
               </button>
