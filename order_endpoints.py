@@ -3,6 +3,7 @@ from typing import List
 from pydantic import BaseModel
 from db import database  # Import the Database instance
 from order_service import OrderService
+from datetime import datetime
 
 # Pydantic Models for request validation
 class OrderItemRequest(BaseModel):
@@ -28,6 +29,7 @@ class OrderResponse(BaseModel):
     userid: int
     totalamount: float
     status: str
+    orderdate: datetime
     items: List[OrderItemResponse]
 
 router = APIRouter()

@@ -61,6 +61,7 @@ class OrderService:
                     o.userid,
                     o.totalamount,
                     o.status,
+                    o.orderdate,
                     oi.productid,
                     p.productname,
                     p.image,
@@ -82,6 +83,7 @@ class OrderService:
                         "userid": row["userid"],
                         "totalamount": row["totalamount"],
                         "status": row["status"],
+                        "orderdate": row["orderdate"],
                         "items": []
                     }
                 orders[orderid]["items"].append({

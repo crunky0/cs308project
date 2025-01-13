@@ -14,7 +14,7 @@ interface OrderItem {
 
 interface Order {
   id: number;
-  date: string;
+  orderdate: string;
   status: 'processing' | 'in-transit' | 'delivered' | 'refunded' | 'partially refunded';
   items: OrderItem[];
   total: number;
@@ -28,6 +28,10 @@ const OrdersPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+  const [showTrackPopup, setShowTrackPopup] = useState<boolean>(false);
+  const [trackPopupAddress, setTrackPopupAddress] = useState<string | null>(null);
+  const [trackPopupStatus, setTrackPopupStatus] = useState<string | null>(null);
+
 
   const fetchOrders = async () => {
     try {
@@ -41,11 +45,23 @@ const OrdersPage: React.FC = () => {
       }
 
       const data = await response.json();
-      const todayDate = new Date().toLocaleDateString();
 
+      const formatDate = (dateString: string) => {
+        if (!dateString) return 'Invalid Date'; // Handle missing or null date
+        try {
+          const formattedDate = new Date(dateString.replace(' ', 'T')); // Replace space with 'T' for ISO compatibility
+          if (isNaN(formattedDate.getTime())) {
+            throw new Error('Invalid Date');
+          }
+          return formattedDate.toLocaleDateString(); // Return user-friendly date
+        } catch {
+          return 'Invalid Date';
+        }
+      };
+      
       const formattedOrders = data.map((order: any) => ({
         id: order.orderid,
-        date: todayDate, // Adjust if date format differs
+        orderdate: formatDate(order.orderdate), // Adjust if date format differs
         status: order.status,
         items: order.items.map((item: any) => ({
           id: item.productid,
@@ -127,8 +143,29 @@ const OrdersPage: React.FC = () => {
   };
 
   const isEligibleForRefund = (order: Order) => {
-    const daysSinceOrder = (new Date().getTime() - new Date(order.date).getTime()) / (24 * 60 * 60 * 1000);
+    const daysSinceOrder = (new Date().getTime() - new Date(order.orderdate).getTime()) / (24 * 60 * 60 * 1000);
     return order.status === 'delivered' && daysSinceOrder <= 30;
+  };
+
+  const handleTrackOrder = async (userid: number, status: string) => {
+    try {
+      const response = await fetch(`http://localhost:8000/users/${userid}/homeaddress`);
+      if (!response.ok) throw new Error('Failed to fetch home address');
+
+      const data = await response.json();
+      setTrackPopupAddress(data.homeaddress);
+      setTrackPopupStatus(status);
+      setShowTrackPopup(true);
+    } catch (error) {
+      console.error('Error fetching home address:', error);
+      alert('Failed to fetch home address. Please try again later.');
+    }
+  };
+
+  const closeTrackPopup = () => {
+    setShowTrackPopup(false);
+    setTrackPopupAddress(null);
+    setTrackPopupStatus(null);
   };
 
   if (loading) {
@@ -157,7 +194,7 @@ const OrdersPage: React.FC = () => {
                 <div className="order-header">
                   <div className="order-info">
                     <h3>Order #{order.id}</h3>
-                    <p>Placed on {new Date(order.date).toLocaleDateString()}</p>
+                    <p>Placed on {new Date(order.orderdate).toLocaleDateString()}</p>
                   </div>
                   <div className="order-status" style={{ color: getStatusColor(order.status) }}>
                     {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
@@ -200,7 +237,13 @@ const OrdersPage: React.FC = () => {
                         Request Refund
                       </button>
                     )}
-                    <button className="track-order-btn">Track Order</button>
+                    <button
+                      className="track-order-btn"
+                      onClick={() => handleTrackOrder(user?.userid ?? 0, order.status)}
+                    >
+                      Track Order
+                    </button>
+
                   </div>
                 </div>
               </div>
@@ -217,6 +260,16 @@ const OrdersPage: React.FC = () => {
               <button className="confirm-btn" onClick={handleCancel}>Yes</button>
               <button className="cancel-btn" onClick={closePopup}>No</button>
             </div>
+          </div>
+        </div>
+      )}
+      {showTrackPopup && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <h3>Track Order</h3>
+            <p><strong>Status:</strong> {trackPopupStatus}</p>
+            <p><strong>Address:</strong> {trackPopupAddress}</p>
+            <button className="close-btn" onClick={closeTrackPopup}>Close</button>
           </div>
         </div>
       )}
