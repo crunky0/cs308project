@@ -34,6 +34,14 @@ const ManagePrices: React.FC = () => {
     }
   };
 
+  const handleCheckboxChange = (productid: number) => {
+    setSelectedProducts(prevSelected =>
+      prevSelected.includes(productid)
+        ? prevSelected.filter(id => id !== productid)
+        : [...prevSelected, productid]
+    );
+  };
+
   // Handle product selection for price update
   const handleOpenPopup = (product: Product) => {
     setEditingProduct(product);
@@ -128,17 +136,19 @@ const ManagePrices: React.FC = () => {
         onChange={e => setDiscount(Number(e.target.value))}
       />
       <button onClick={applyBulkDiscount}>Apply Bulk Discount</button>
-      <div className="products-list">
+      <div className="sales-list">
         {products.map(product => (
-          <div className="product-card" onClick={() => handleOpenPopup(product)}>
+          <div className="sales-card" onClick={() => handleOpenPopup(product)}>
+            <input
+              type="checkbox"
+              checked={selectedProducts.includes(product.productid)}
+              onChange={() => handleCheckboxChange(product.productid)}
+            />
           <img src={product.image} alt={product.productname} />
           <h2>{product.productname}</h2>
           <p>Price: ${product.price.toFixed(2)}</p>
-          {product.discountprice ? (
-            <p>Discounted Price: ${product.discountprice.toFixed(2)}</p>
-          ) : (
-            <p>No Discount</p>
-          )}
+            {product.discountprice && <p>Discounted Price: ${product.discountprice.toFixed(2)}</p>}
+            <button onClick={() => handleOpenPopup(product)}>Set Price</button>
           </div>
 
         ))}

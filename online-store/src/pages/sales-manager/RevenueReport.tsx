@@ -1,60 +1,62 @@
 import React, { useState } from 'react';
-import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import './RevenueReport.css';
 
-// Register chart components
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
-
-interface RevenueData {
-  date: string;
-  revenue: number;
-  profit: number;
-}
-
-const RevenueReport: React.FC = () => {
+const RevenuePage: React.FC = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
+  const [chartUrl, setChartUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const fetchRevenue = async () => {
+  const fetchRevenueChartImage = async () => {
+    if (!startDate || !endDate) {
+      alert('Please select both start and end dates.');
+      return;
+    }
+
+    setLoading(true);
+    setChartUrl(null); // Reset the chart URL before fetching
+
     try {
-      const response = await fetch(`http://localhost:8000/revenue?start=${startDate}&end=${endDate}`);
-      if (!response.ok) throw new Error('Failed to fetch revenue data');
-      const data = await response.json();
-      setRevenueData(data);
-    } catch (err) {
-      console.error(err);
+      const response = await fetch(
+        `http://localhost:8000/profit_loss_chart_image?start_date=${startDate}&end_date=${endDate}`
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch the chart image.');
+      }
+
+      const imageBlob = await response.blob();
+      const imageUrl = URL.createObjectURL(imageBlob);
+      setChartUrl(imageUrl);
+    } catch (error) {
+      console.error(error);
+      alert('Failed to fetch revenue chart image. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const chartData = {
-    labels: revenueData.map((item) => item.date),
-    datasets: [
-      {
-        label: 'Revenue',
-        data: revenueData.map((item) => item.revenue),
-        borderColor: 'green',
-        backgroundColor: 'lightgreen',
-      },
-      {
-        label: 'Profit/Loss',
-        data: revenueData.map((item) => item.profit),
-        borderColor: 'blue',
-        backgroundColor: 'lightblue',
-      },
-    ],
-  };
-
   return (
-    <div className="revenue-report-container">
-      <h1>Revenue Report</h1>
-      <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-      <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-      <button onClick={fetchRevenue}>Fetch Report</button>
-      <Line data={chartData} />
+    <div className="revenue-page-container">
+      <h1>Revenue & Profit/Loss Report</h1>
+      <div className="date-inputs">
+        <label>Start Date:</label>
+        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+        <label>End Date:</label>
+        <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+      </div>
+      <button onClick={fetchRevenueChartImage} disabled={loading}>
+        {loading ? 'Loading...' : 'Fetch Report'}
+      </button>
+
+      {chartUrl && (
+        <div className="chart-container">
+          <h2>Chart Image</h2>
+          <img src={chartUrl} alt="Revenue & Profit/Loss Chart" />
+        </div>
+      )}
     </div>
   );
 };
 
-export default RevenueReport;
+export default RevenuePage;
