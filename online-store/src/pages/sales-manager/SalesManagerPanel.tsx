@@ -10,9 +10,9 @@ const SalesManagerPanel = () => {
       <h1 className="sales-manager-header">Sales Manager Panel</h1>
       <nav className="sales-manager-nav">
         <ul className="sales-manager-menu">
-        <Link to="/sales-panel/manage-prices">Manage Prices</Link>
-        <Link to="/sales-panel/view-invoices">View Invoices</Link>
-        <Link to="/sales-panel/revenue-report">Revenue Report</Link>
+        <Link to="/sales-panel/manage-prices" className="sales-manager-link">Manage Prices</Link>
+        <Link to="/sales-panel/view-invoices" className="sales-manager-link">View Invoices</Link>
+        <Link to="/sales-panel/revenue-report" className="sales-manager-link"> Revenue Report</Link>
         </ul>
       </nav>
       <div className="sales-manager-content">
