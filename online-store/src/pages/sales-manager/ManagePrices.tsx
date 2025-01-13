@@ -126,8 +126,6 @@ const ManagePrices: React.FC = () => {
     <div className="manage-prices-container">
       <h1>Manage Prices</h1>
       <div className="bulk-selection">
-        <input type="checkbox" checked={selectAll} onChange={() => setSelectAll(!selectAll)} />
-        <label>Select All Products</label>
       </div>
       <input
         type="number"
