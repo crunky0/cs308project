@@ -118,3 +118,38 @@ async def get_user_info(userid: int):
         "homeAddress": user_info["homeaddress"],
         "role": user_info["role"]
     }
+
+@router.get("/users/{userid}/homeaddress")
+async def get_home_address(userid: int):
+    """
+    Fetch the home address for a user by their userid.
+    """
+    query = """
+        SELECT homeaddress
+        FROM users
+        WHERE userid = :userid
+    """
+    result = await database.fetch_one(query, values={"userid": userid})
+    
+    if not result:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"userid": userid, "homeaddress": result["homeaddress"]}
+
+@router.get("/order-items/{orderid}/{productid}/price")
+async def get_product_price(orderid: int, productid: int):
+    """
+    Fetch the price of a product in an order using orderid and productid.
+    """
+    query = """
+        SELECT price
+        FROM order_items
+        WHERE orderid = :orderid AND productid = :productid
+    """
+    result = await database.fetch_one(query, values={"orderid": orderid, "productid": productid})
+    
+    if not result:
+        raise HTTPException(status_code=404, detail="Product not found in order")
+    
+    return {"orderid": orderid, "productid": productid, "price": result["price"]}
+

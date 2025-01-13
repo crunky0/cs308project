@@ -8,18 +8,19 @@ interface Order {
   orderdate: string;
   status: string;
   items: OrderItem[];
+  deliveryAddress: string;
 }
 
 interface OrderItem {
   productid: number;
   quantity: number;
+  price: number;
   productDetails?: ProductDetails;
 }
 
 interface ProductDetails {
   productname: string;
   image: string;
-  price: number;
 }
 
 interface Delivery {
@@ -51,27 +52,51 @@ const ManageOrders: React.FC = () => {
 
   const fetchProcessingOrders = async () => {
     try {
-      const response = await fetch("http://localhost:8000/productmanagerpanel/orders/processing");
-      if (!response.ok) throw new Error("Failed to fetch orders");
-      const data = await response.json();
+        const response = await fetch("http://localhost:8000/productmanagerpanel/orders/processing");
+        if (!response.ok) throw new Error("Failed to fetch orders");
+        const data = await response.json();
 
-      const ordersWithDetails = await Promise.all(
-        data.map(async (order: Order) => ({
-          ...order,
-          items: await Promise.all(
-            order.items.map(async (item: OrderItem) => ({
-              ...item,
-              productDetails: await fetchProductDetails(item.productid),
-            }))
-          ),
-        }))
-      );
+        const ordersWithDetails = await Promise.all(
+            data.map(async (order: Order) => {
+                // Fetch the delivery address for the order
+                const addressResponse = await fetch(`http://localhost:8000/users/${order.userid}/homeaddress`);
+                const addressData = await addressResponse.json();
+                const deliveryAddress = addressData.homeaddress;
 
-      setOrders(ordersWithDetails || []);
+                // Add items with product details and price
+                const itemsWithDetails = await Promise.all(
+                    order.items.map(async (item: OrderItem) => {
+                        const productDetails = await fetchProductDetails(item.productid);
+
+                        // Fetch the price for the specific order and product
+                        const priceResponse = await fetch(
+                            `http://localhost:8000/order-items/${order.orderid}/${item.productid}/price`
+                        );
+                        const priceData = await priceResponse.json();
+
+                        return {
+                            ...item,
+                            productDetails,
+                            price: priceData.price, // Add the price from order_items
+                        };
+                    })
+                );
+
+                return {
+                    ...order,
+                    items: itemsWithDetails,
+                    deliveryAddress, // Add the delivery address to the order
+                };
+            })
+        );
+
+        setOrders(ordersWithDetails || []);
     } catch (err) {
-      setError("Failed to load orders.");
+        setError("Failed to load orders.");
+        console.error("Error fetching orders:", err);
     }
-  };
+};
+
 
   const fetchDeliveries = async (status: string) => {
     try {
@@ -164,6 +189,7 @@ const ManageOrders: React.FC = () => {
                 <p>Customer ID: {order.userid}</p>
                 <p>Total Amount: ${order.totalamount.toFixed(2)}</p>
                 <p>Order Date: {new Date(order.orderdate).toLocaleDateString()}</p>
+                <p>Delivery Address: {order.deliveryAddress}</p>
                 <div className="order-items">
                   {order.items.map((item, index) => (
                     <div key={index} className="order-item">
@@ -174,7 +200,7 @@ const ManageOrders: React.FC = () => {
                       <div>
                         <p>{item.productDetails?.productname}</p>
                         <p>Product ID: {item.productid}</p>
-                        <p>Price: ${item.productDetails?.price.toFixed(2)}</p>
+                        <p>Price: ${item.price?.toFixed(2)}</p>
                         <p>Quantity: {item.quantity}</p>
                       </div>
                     </div>

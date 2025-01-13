@@ -28,6 +28,10 @@ const OrdersPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+  const [showTrackPopup, setShowTrackPopup] = useState<boolean>(false);
+  const [trackPopupAddress, setTrackPopupAddress] = useState<string | null>(null);
+  const [trackPopupStatus, setTrackPopupStatus] = useState<string | null>(null);
+
 
   const fetchOrders = async () => {
     try {
@@ -41,7 +45,6 @@ const OrdersPage: React.FC = () => {
       }
 
       const data = await response.json();
-      const todayDate = new Date().toLocaleDateString();
 
       const formatDate = (dateString: string) => {
         if (!dateString) return 'Invalid Date'; // Handle missing or null date
@@ -144,6 +147,27 @@ const OrdersPage: React.FC = () => {
     return order.status === 'delivered' && daysSinceOrder <= 30;
   };
 
+  const handleTrackOrder = async (userid: number, status: string) => {
+    try {
+      const response = await fetch(`http://localhost:8000/users/${userid}/homeaddress`);
+      if (!response.ok) throw new Error('Failed to fetch home address');
+
+      const data = await response.json();
+      setTrackPopupAddress(data.homeaddress);
+      setTrackPopupStatus(status);
+      setShowTrackPopup(true);
+    } catch (error) {
+      console.error('Error fetching home address:', error);
+      alert('Failed to fetch home address. Please try again later.');
+    }
+  };
+
+  const closeTrackPopup = () => {
+    setShowTrackPopup(false);
+    setTrackPopupAddress(null);
+    setTrackPopupStatus(null);
+  };
+
   if (loading) {
     return <div>Loading your orders...</div>;
   }
@@ -213,7 +237,13 @@ const OrdersPage: React.FC = () => {
                         Request Refund
                       </button>
                     )}
-                    <button className="track-order-btn">Track Order</button>
+                    <button
+                      className="track-order-btn"
+                      onClick={() => handleTrackOrder(user?.userid ?? 0, order.status)}
+                    >
+                      Track Order
+                    </button>
+
                   </div>
                 </div>
               </div>
@@ -230,6 +260,16 @@ const OrdersPage: React.FC = () => {
               <button className="confirm-btn" onClick={handleCancel}>Yes</button>
               <button className="cancel-btn" onClick={closePopup}>No</button>
             </div>
+          </div>
+        </div>
+      )}
+      {showTrackPopup && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <h3>Track Order</h3>
+            <p><strong>Status:</strong> {trackPopupStatus}</p>
+            <p><strong>Address:</strong> {trackPopupAddress}</p>
+            <button className="close-btn" onClick={closeTrackPopup}>Close</button>
           </div>
         </div>
       )}
