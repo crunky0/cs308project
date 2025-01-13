@@ -381,18 +381,104 @@ async def manager_decision(decision: RefundDecision):
             if not user_info:
                 raise HTTPException(status_code=404, detail="User not found")
 
-            email_subject = f"Refund Processed for Order {decision.orderid}"
+            email_subject = f"Refund Processed for Order #{decision.orderid}"
+
             email_body = f"""
             <html>
+            <head>
+                <style>
+                    body {{
+                        font-family: Arial, sans-serif;
+                        line-height: 1.6;
+                        background-color: #f9f9f9;
+                        margin: 0;
+                        padding: 20px;
+                    }}
+                    .container {{
+                        max-width: 600px;
+                        margin: 20px auto;
+                        padding: 20px;
+                        background-color: #ffffff;
+                        border: 1px solid #ddd;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                    }}
+                    .header {{
+                        text-align: center;
+                        margin-bottom: 20px;
+                    }}
+                    .header h1 {{
+                        font-size: 24px;
+                        color: #4CAF50;
+                    }}
+                    .content p {{
+                        margin: 10px 0;
+                        color: #555;
+                    }}
+                    .content ul {{
+                        padding-left: 20px;
+                    }}
+                    .content ul li {{
+                        margin-bottom: 10px;
+                    }}
+                    .footer {{
+                        text-align: center;
+                        margin-top: 20px;
+                        font-size: 12px;
+                        color: #999;
+                    }}
+                    .button {{
+                        display: inline-block;
+                        padding: 10px 20px;
+                        margin: 20px 0;
+                        color: #ffffff;
+                        background-color: #4CAF50;
+                        text-decoration: none;
+                        border-radius: 5px;
+                    }}
+                    .button:hover {{
+                        background-color: #45a049;
+                    }}
+                </style>
+            </head>
             <body>
-                <p>Dear {user_info['name']},</p>
-                <p>Your refund request for Order #{decision.orderid} has been approved.</p>
-                <p>Refunded Amount: ${refunded_amount:.2f}</p>
-                <p>Thank you for your understanding. Feel free to reach out for further assistance.</p>
-                <p>Best regards,<br>Your Store Team</p>
+                <div class="container">
+                    <!-- Header Section -->
+                    <div class="header">
+                        <h1>Refund Confirmation</h1>
+                    </div>
+
+                    <!-- Content Section -->
+                    <div class="content">
+                        <p>Dear <strong>{user_info['name']}</strong>,</p>
+
+                        <p>We are pleased to inform you that your refund request for <strong>Order #{decision.orderid}</strong> has been successfully approved. Below are the details of your refund:</p>
+
+                        <ul>
+                            <li><strong>Order Number:</strong> #{decision.orderid}</li>
+                            <li><strong>Refunded Amount:</strong> ${refunded_amount:.2f}</li>
+                            <li><strong>Refund Processed Date:</strong> {datetime.now().strftime('%Y-%m-%d')}</li>
+                        </ul>
+
+                        <p>The refunded amount has been credited to the original payment method you used at the time of purchase. Please allow 3–5 business days for the amount to reflect in your account, depending on your financial institution's processing time.</p>
+
+                        <p>If you have any questions regarding your refund, feel free to contact our support team. We are always happy to assist you!</p>
+
+                        <!-- Call to Action Button -->
+                        <a href="https://yourstore.example.com/support" class="button">Contact Support</a>
+                    </div>
+
+                    <!-- Footer Section -->
+                    <div class="footer">
+                        <p>Thank you for shopping with us!</p>
+                        <p><em>Your Store Team</em></p>
+                        <p>For more information, visit our <a href="https://yourstore.example.com">website</a>.</p>
+                    </div>
+                </div>
             </body>
             </html>
             """
+
             mailing_service.send_email(user_info["email"], email_subject, email_body)
 
             return RefundResponse(
