@@ -28,6 +28,9 @@ interface Delivery {
   customerid: number;
   productid: number;
   quantity: number;
+  price: number; // From the deliveries table
+  total_price: number; // From the deliveries table
+  delivery_address: string;
   status: string;
   productDetails?: ProductDetails;
 }
@@ -195,6 +198,7 @@ const ManageOrders: React.FC = () => {
                 <h3>Delivery ID: {delivery.deliveryid}</h3>
                 <p>Order ID: {delivery.orderid}</p>
                 <p>Customer ID: {delivery.customerid}</p>
+                <p>Delivery Address: {delivery.delivery_address}</p>
                 <p className="delivery-status">Status: {delivery.status}</p>
                 <div className="order-item">
                   <img
@@ -204,7 +208,8 @@ const ManageOrders: React.FC = () => {
                   <div>
                     <p>{delivery.productDetails?.productname}</p>
                     <p>Product ID: {delivery.productid}</p>
-                    <p>Price: ${delivery.productDetails?.price.toFixed(2)}</p>
+                    <p>Price: ${delivery.price.toFixed(2)}</p>
+                    <p>Total Order Price: ${delivery.total_price.toFixed(2)}</p>
                     <p>Quantity: {delivery.quantity}</p>
                   </div>
                 </div>

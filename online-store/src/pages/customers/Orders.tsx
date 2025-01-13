@@ -14,7 +14,7 @@ interface OrderItem {
 
 interface Order {
   id: number;
-  date: string;
+  orderdate: string;
   status: 'processing' | 'in-transit' | 'delivered' | 'refunded' | 'partially refunded';
   items: OrderItem[];
   total: number;
@@ -43,9 +43,22 @@ const OrdersPage: React.FC = () => {
       const data = await response.json();
       const todayDate = new Date().toLocaleDateString();
 
+      const formatDate = (dateString: string) => {
+        if (!dateString) return 'Invalid Date'; // Handle missing or null date
+        try {
+          const formattedDate = new Date(dateString.replace(' ', 'T')); // Replace space with 'T' for ISO compatibility
+          if (isNaN(formattedDate.getTime())) {
+            throw new Error('Invalid Date');
+          }
+          return formattedDate.toLocaleDateString(); // Return user-friendly date
+        } catch {
+          return 'Invalid Date';
+        }
+      };
+      
       const formattedOrders = data.map((order: any) => ({
         id: order.orderid,
-        date: todayDate, // Adjust if date format differs
+        orderdate: formatDate(order.orderdate), // Adjust if date format differs
         status: order.status,
         items: order.items.map((item: any) => ({
           id: item.productid,
@@ -127,7 +140,7 @@ const OrdersPage: React.FC = () => {
   };
 
   const isEligibleForRefund = (order: Order) => {
-    const daysSinceOrder = (new Date().getTime() - new Date(order.date).getTime()) / (24 * 60 * 60 * 1000);
+    const daysSinceOrder = (new Date().getTime() - new Date(order.orderdate).getTime()) / (24 * 60 * 60 * 1000);
     return order.status === 'delivered' && daysSinceOrder <= 30;
   };
 
@@ -157,7 +170,7 @@ const OrdersPage: React.FC = () => {
                 <div className="order-header">
                   <div className="order-info">
                     <h3>Order #{order.id}</h3>
-                    <p>Placed on {new Date(order.date).toLocaleDateString()}</p>
+                    <p>Placed on {new Date(order.orderdate).toLocaleDateString()}</p>
                   </div>
                   <div className="order-status" style={{ color: getStatusColor(order.status) }}>
                     {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
